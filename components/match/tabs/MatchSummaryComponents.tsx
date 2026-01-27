@@ -95,7 +95,13 @@ const ParticipantRow: React.FC<ParticipantRowProps> = ({ participant: p, maxDama
         <div className="grid grid-cols-12 gap-2 items-center p-2 hover:bg-white/5 rounded transition-colors text-sm">
             {/* Champion & Summoner & Runes */}
             <div className="col-span-3 flex items-center gap-3">
-                <div className="relative group cursor-pointer" onClick={() => window.open(summonerLink, '_blank')}>
+                <div
+                    role="button"
+                    tabIndex={0}
+                    className="relative group cursor-pointer"
+                    onClick={() => window.open(summonerLink, '_blank')}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open(summonerLink, '_blank'); }}
+                >
                     <Image src={p.champion.imageUrl} width={48} height={48} className="w-12 h-12 rounded-lg border border-gray-700 object-cover" alt={p.champion.name} />
                     <div className="absolute -bottom-1 -right-1 bg-black text-[10px] w-5 h-5 flex items-center justify-center rounded border border-gray-700 text-gray-400">{p.level}</div>
                 </div>

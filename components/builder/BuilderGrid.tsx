@@ -38,7 +38,7 @@ export const BuilderGrid: React.FC<BuilderGridProps> = ({
     const newItems = [...selectedItems];
 
     if (sourceType === 'slot') {
-      const sourceIndex = parseInt(e.dataTransfer.getData('slotIndex'));
+      const sourceIndex = Number.parseInt(e.dataTransfer.getData('slotIndex'));
       const swappedItem = newItems[targetIndex];
       newItems[targetIndex] = newItems[sourceIndex];
       newItems[sourceIndex] = swappedItem;

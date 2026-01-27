@@ -197,9 +197,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Language Switcher */}
             <div className="relative">
               <div
+                role="button"
+                tabIndex={0}
                 className={`hidden md:flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full 
                   border border-white/5 hover:border-lol-gold/30 hover:bg-white/5 transition group`}
                 onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsLangMenuOpen(!isLangMenuOpen); }}
               >
                 <Globe className="w-4 h-4 text-gray-400 group-hover:text-lol-gold transition-colors" />
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-300">{currentLang}</span>

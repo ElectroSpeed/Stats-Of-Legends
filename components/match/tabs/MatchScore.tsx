@@ -154,6 +154,8 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
 
                             return (
                                 <div key={i}
+                                    role="button"
+                                    tabIndex={0}
                                     className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
                                         ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''}
                                     `}
@@ -166,6 +168,7 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                                         if (isSelected) return;
                                         toggleComparison(p.puuid);
                                     }}
+                                    onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isSelected) toggleComparison(p.puuid); }}
                                 >
                                     <div className="relative">
                                         <Image src={p.champion.imageUrl} width={40} height={40} className="w-10 h-10 rounded-lg border border-blue-500/30" alt={p.champion.name} />
@@ -191,6 +194,8 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
 
                             return (
                                 <div key={i}
+                                    role="button"
+                                    tabIndex={0}
                                     className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
                                         ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''}
                                     `}
@@ -203,6 +208,7 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                                         if (isSelected) return;
                                         toggleComparison(p.puuid);
                                     }}
+                                    onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isSelected) toggleComparison(p.puuid); }}
                                 >
                                     <div className="relative">
                                         <Image src={p.champion.imageUrl} width={40} height={40} className="w-10 h-10 rounded-lg border border-red-500/30" alt={p.champion.name} />

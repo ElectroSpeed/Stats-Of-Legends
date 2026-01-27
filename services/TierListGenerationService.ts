@@ -132,9 +132,9 @@ export class TierListGenerationService {
                     role: s.role as any,
                     tier: tier,
                     rank: 0,
-                    winRate: parseFloat(winRate.toFixed(2)),
-                    pickRate: parseFloat(pickRate.toFixed(1)),
-                    banRate: parseFloat(banRate.toFixed(1)),
+                    winRate: Number.parseFloat(winRate.toFixed(2)),
+                    pickRate: Number.parseFloat(pickRate.toFixed(1)),
+                    banRate: Number.parseFloat(banRate.toFixed(1)),
                     trend: 'stable',
                     matches: s.matches,
                     counters: counters

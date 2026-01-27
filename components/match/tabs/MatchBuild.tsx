@@ -31,7 +31,7 @@ export const MatchBuild: React.FC<MatchBuildProps> = ({ match }) => {
     // Sort by timestamp
     const getSec = (s: string) => {
         const m = (s && s.match) ? s.match(/(\d+)m\s*(\d+)?s?/) : null;
-        return m ? parseInt(m[1]) * 60 + parseInt(m[2] || '0') : 0;
+        return m ? Number.parseInt(m[1]) * 60 + Number.parseInt(m[2] || '0') : 0;
     };
 
     const sortedBuild = [...itemBuild].sort((a, b) => {

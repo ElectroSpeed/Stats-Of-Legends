@@ -33,8 +33,11 @@ export interface RuneIconProps {
 
 export const RuneIcon = ({ rune, isSelected, onClick, isKeystone, size = 48 }: RuneIconProps) => (
     <div
+        role="button"
+        tabIndex={0}
         className="relative group cursor-pointer flex-shrink-0 aspect-square flex items-center justify-center"
         onClick={onClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
         style={{ width: size, height: size }}
     >
         <div className={`w-full h-full rounded-full border-2 transition-all duration-300 flex items-center justify-center overflow-hidden ${isSelected

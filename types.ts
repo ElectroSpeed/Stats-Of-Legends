@@ -400,6 +400,7 @@ export interface RiotSummoner {
   name: string;
   profileIconId: number;
   summonerLevel: number;
+  revisionDate?: number;
 }
 
 export interface RiotParticipant {

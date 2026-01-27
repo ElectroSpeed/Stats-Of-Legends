@@ -44,7 +44,7 @@ export const ChampionSelect: React.FC<ChampionSelectProps> = ({
                 </div>
 
                 <div className="flex items-center gap-8 relative z-10">
-                    <div className="relative cursor-pointer group" onClick={() => setIsChampSelectOpen(!isChampSelectOpen)}>
+                    <div className="relative cursor-pointer group" role="button" tabIndex={0} onClick={() => setIsChampSelectOpen(!isChampSelectOpen)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsChampSelectOpen(!isChampSelectOpen); }}>
                         <div className="absolute -inset-2 bg-lol-gold rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity"></div>
                         {champImage && (
                             <Image src={champImage} width={112} height={112} alt={champName || ''} className="relative w-28 h-28 rounded-full border-4 border-[#121212] ring-2 ring-lol-gold shadow-2xl transition-transform group-hover:scale-105 object-cover" />
@@ -68,7 +68,7 @@ export const ChampionSelect: React.FC<ChampionSelectProps> = ({
                                 min="1"
                                 max="18"
                                 value={championLevel}
-                                onChange={(e) => setChampionLevel(parseInt(e.target.value))}
+                                onChange={(e) => setChampionLevel(Number.parseInt(e.target.value))}
                                 className="flex-grow h-2 bg-gray-800 rounded-full appearance-none cursor-pointer accent-lol-gold"
                             />
                         </div>
@@ -150,7 +150,10 @@ const ChampionCard = ({ champ, isSelected, onClick }: { champ: Champion, isSelec
 
     return (
         <div
+            role="button"
+            tabIndex={0}
             onClick={onClick}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
             className={`flex flex-col items-center gap-3 p-4 hover:bg-white/5 cursor-pointer rounded-2xl border transition-all ${cardClass}`}
         >
             <Image src={champ.imageUrl} width={56} height={56} className="w-14 h-14 rounded-full border border-gray-700 shadow-sm" alt={champ.name} />

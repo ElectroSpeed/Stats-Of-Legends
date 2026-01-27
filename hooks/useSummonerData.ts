@@ -61,7 +61,6 @@ export function useSummonerData(region: string, summonerName: string) {
                 }
                 throw new Error('Fetch summoner failed');
             }
-            return 0;
 
         } catch (e) {
             console.error('Failed to fetch summoner', e);

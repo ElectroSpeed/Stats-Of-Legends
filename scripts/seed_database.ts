@@ -77,10 +77,10 @@ const getArg = (key: string, def: string) => {
 const CONFIG = {
     REGION: getArg('region', DEFAULTS.REGION),
     TIER: getArg('tier', DEFAULTS.TIER),
-    CONCURRENCY: parseInt(getArg('concurrency', DEFAULTS.CONCURRENCY)),
-    MATCHES_PER_PLAYER: parseInt(getArg('matches', DEFAULTS.MATCHES_PER_PLAYER)),
-    TARGET_MATCHES_PER_TIER: parseInt(getArg('target', DEFAULTS.TARGET_MATCHES_PER_TIER)),
-    PLAYERS_PER_TIER: parseInt(getArg('players', DEFAULTS.PLAYERS_PER_TIER)),
+    CONCURRENCY: Number.parseInt(getArg('concurrency', DEFAULTS.CONCURRENCY)),
+    MATCHES_PER_PLAYER: Number.parseInt(getArg('matches', DEFAULTS.MATCHES_PER_PLAYER)),
+    TARGET_MATCHES_PER_TIER: Number.parseInt(getArg('target', DEFAULTS.TARGET_MATCHES_PER_TIER)),
+    PLAYERS_PER_TIER: Number.parseInt(getArg('players', DEFAULTS.PLAYERS_PER_TIER)),
     // Derived
     ROUTING: REGION_ROUTING[getArg('region', DEFAULTS.REGION)] || 'europe',
     QUEUE: 'RANKED_SOLO_5x5'
