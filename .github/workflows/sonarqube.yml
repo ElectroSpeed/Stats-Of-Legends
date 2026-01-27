@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
+        uses: SonarSource/sonarcloud-github-action@d7a4f37507f654dcf6869a657e89da6f16c2a750
         with:
           args: >
             -Dsonar.projectKey=ElectroSpeed_Stats-Of-Legends
