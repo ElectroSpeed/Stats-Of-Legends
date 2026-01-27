@@ -1,4 +1,4 @@
-name: SonarQube analysis
+name: SonarCloud analysis
 
 on:
   push:
@@ -11,19 +11,18 @@ permissions:
   pull-requests: read
 
 jobs:
-  sonarqube:
+  sonarcloud:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v1
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
         with:
           args: >
             -Dsonar.projectKey=ElectroSpeed_Stats-Of-Legends
-            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.organization=stats-of-legends
             -Dsonar.sources=.
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
