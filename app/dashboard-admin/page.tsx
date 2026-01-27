@@ -99,9 +99,10 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
 
             {/* Tier Selector */}
             <div>
-                <label className="text-sm text-gray-400 block mb-2">Target Tier</label>
-                <select
-                    value={config.tier}
+                      <label htmlFor="tier" className="text-sm text-gray-400 block mb-2">Target Tier</label>
+                      <select
+                        id="tier"
+                        value={config.tier}
                     onChange={(e) => actions.setTier(e.target.value)}
                     className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
                         text-white focus:border-lol-gold outline-none`}
@@ -113,8 +114,9 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
             {/* Division Selector (Hidden for Apex Tiers) */}
             {!['CHALLENGER', 'GRANDMASTER', 'MASTER'].includes(config.tier) && (
                 <div>
-                    <label className="text-sm text-gray-400 block mb-2">Division</label>
-                    <select
+                      <label htmlFor="division" className="text-sm text-gray-400 block mb-2">Division</label>
+                      <select
+                        id="division"
                         value={config.division}
                         onChange={(e) => actions.setDivision(e.target.value)}
                         className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
@@ -127,9 +129,10 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
 
             {/* Rate Limit */}
             <div>
-                <label className="text-sm text-gray-400 block mb-2">Rate Limit (req/s)</label>
-                <input
-                    type="number"
+                      <label htmlFor="rateLimit" className="text-sm text-gray-400 block mb-2">Rate Limit (req/s)</label>
+                      <input
+                        id="rateLimit"
+                        type="number"
                     value={config.rateLimit}
                     onChange={(e) => actions.setRateLimit(Number(e.target.value))}
                     className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 

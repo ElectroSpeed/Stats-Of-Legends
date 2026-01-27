@@ -73,7 +73,7 @@ export class AggregationService {
 
             // Heatmap
             const creation = new Date(match.gameCreation);
-            if (!isNaN(creation.getTime())) {
+            if (!Number.isNaN(creation.getTime())) {
                 const date = creation.toISOString().split('T')[0];
                 if (!heatmapData[date]) heatmapData[date] = { count: 0, wins: 0, losses: 0 };
                 heatmapData[date].count++;

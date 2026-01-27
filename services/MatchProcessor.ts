@@ -179,7 +179,7 @@ export class MatchProcessor {
             const finalItems = [p.item0, p.item1, p.item2, p.item3, p.item4, p.item5]
                 .filter(id => id && id !== 0 && !IGNORED_ITEMS.has(id));
 
-            const finalBuildKey = finalItems.sort().join('-');
+            const finalBuildKey = finalItems.sort((a, b) => a - b).join('-');
             const items: Record<string, any> = {};
             if (finalBuildKey) {
                 items[finalBuildKey] = { wins: p.win ? 1 : 0, matches: 1, build: finalItems };

@@ -81,9 +81,12 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
         {/* Season Selector */}
         <div className="bg-[#121212] border border-white/5 rounded-[1.5rem] p-4 relative z-20">
           <div
+            role="button"
+            tabIndex={0}
             className={`text-xs font-bold text-lol-gold uppercase tracking-widest mb-3 px-2 
               flex items-center justify-between cursor-pointer hover:text-white transition-colors`}
             onClick={() => setIsSeasonMenuOpen(!isSeasonMenuOpen)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsSeasonMenuOpen(!isSeasonMenuOpen); }}
           >
             {activeSeason}
             <ChevronDown className={`w-3 h-3 transition-transform ${isSeasonMenuOpen ? 'rotate-180' : ''}`} />
@@ -145,16 +148,16 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
             <thead>
               <tr className="text-[10px] uppercase text-gray-500 font-bold border-b border-white/5 bg-[#18181b]">
                 <th className="p-4 text-center w-10">#</th>
-                <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('name')}>
+                <th role="columnheader" tabIndex={0} className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('name')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('name'); }}>
                   Champion <SortIcon column="name" />
                 </th>
-                <th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('games')}>
+                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('games')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('games'); }}>
                   Games <SortIcon column="games" />
                 </th>
                 <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('wins')}>
                   Win/Lose (WR) <SortIcon column="wins" />
                 </th>
-                <th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('kda')}>
+                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('kda')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('kda'); }}>
                   KDA <SortIcon column="kda" />
                 </th>
                 <th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('dmgPerMinute')}>

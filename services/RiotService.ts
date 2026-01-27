@@ -49,7 +49,7 @@ const fetchWithRetry = async (url: string, options: RequestInit = { headers: get
     const res = await fetch(url, options);
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After');
-      const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 1000;
+      const waitTime = retryAfter ? Number.parseInt(retryAfter) * 1000 : 1000;
       if (waitTime > 120000) {
         // Propagate very long waits ( > 2 mins) to caller
         const error: any = new Error('Rate Limit Exceeded');
@@ -134,7 +134,7 @@ export const RiotService = {
     const riotData = await res.json();
     const map: Record<number, string> = {};
     Object.values(riotData.data).forEach((c: any) => {
-      map[parseInt(c.key)] = c.id;
+      map[Number.parseInt(c.key)] = c.id;
     });
     return map;
   },

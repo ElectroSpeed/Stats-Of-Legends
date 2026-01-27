@@ -34,8 +34,9 @@ const TierListHeader = ({ filters, actions, options }: TierListHeaderProps) => (
         <div className="flex gap-4 items-end">
             {/* Rank Filter */}
             <div className="w-40">
-                <label className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2 block">Rank</label>
+                <label htmlFor="rank" className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2 block">Rank</label>
                 <select
+                    id="rank"
                     value={filters.rank}
                     onChange={(e) => actions.setRank(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-lol-gold/50 transition-colors text-white"

@@ -25,8 +25,8 @@ export class DataDragonService {
             } else if (typeof val === 'string') {
                 const parts = val.split('/');
                 const nums = parts.map(p => {
-                    const n = parseFloat(p.replace(/[^0-9.]/g, ''));
-                    return isNaN(n) ? 0 : n;
+                    const n = Number.parseFloat(p.replace(/[^0-9.]/g, ''));
+                    return Number.isNaN(n) ? 0 : n;
                 });
                 if (nums.some(n => n > 0)) return nums;
             }
@@ -41,8 +41,8 @@ export class DataDragonService {
         } else if (Array.isArray(spell.effectBurn) && spell.effectBurn[1]) {
             const parts = String(spell.effectBurn[1]).split('/');
             base = parts.map(p => {
-                const n = parseFloat(p.replace(/[^0-9.]/g, ''));
-                return isNaN(n) ? 0 : n;
+                const n = Number.parseFloat(p.replace(/[^0-9.]/g, ''));
+                return Number.isNaN(n) ? 0 : n;
             });
         }
 

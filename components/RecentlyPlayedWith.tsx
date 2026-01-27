@@ -29,7 +29,7 @@ export const RecentlyPlayedWith: React.FC<RecentlyPlayedWithProps> = ({ teammate
         {teammates.filter(t => t.games >= 2).map((teammate, idx) => (
           <Link
             key={idx}
-            href={`/summoner/${lang === 'FR' ? 'EUW' : 'EUW'}/${teammate.name}-${teammate.tag}`}
+            href={`/summoner/EUW/${teammate.name}-${teammate.tag}`}
             className="flex items-center justify-between text-sm group cursor-pointer hover:bg-white/5 p-2 rounded-xl transition"
           >
             <div className="flex items-center gap-3">

@@ -142,7 +142,10 @@ export const ItemCatalog: React.FC<ItemCatalogProps> = ({ items, onItemSelect, t
                 transform: `translateY(${item.virtualTop}px)`,
               }}
               // no drag from catalog, click only
+              role="button"
+              tabIndex={0}
               onClick={() => onItemSelect(item)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onItemSelect(item); }}
               className="relative bg-[#1a1a1a] hover:bg-[#252525] border border-transparent hover:border-lol-gold/50 p-3 flex items-center gap-4 cursor-pointer transition rounded-2xl group select-none"
             >
               <Image src={item.imageUrl} width={48} height={48} className="w-12 h-12 rounded-xl border border-gray-700 group-hover:border-lol-gold" alt={item.name} />

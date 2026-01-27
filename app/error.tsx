@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import { RotateCcw, ShieldAlert } from "lucide-react";
 
-export default function Error({
+export default function ErrorPage({
   error,
   reset,
 }: {
