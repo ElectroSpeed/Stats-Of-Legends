@@ -27,7 +27,7 @@ const LoginScreen = ({ secretKey, setSecretKey, handleLogin }: any) => (
                 />
             </label>
             <button
-                onClick={() => void handleLogin()}
+                onClick={() => { handleLogin(); }}
                 className="w-full bg-lol-gold text-black font-bold py-3 rounded-lg hover:bg-yellow-500 transition"
             >
                 Unlock Dashboard
@@ -90,7 +90,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
             {/* Region Selector */}
             <div>
                 <label className="block mb-2 text-sm text-gray-400">
-                    Region
+                    <div>Region</div>
                     <select
                         value={config.region}
                         onChange={(e) => actions.setRegion(e.target.value)}
@@ -105,7 +105,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
             {/* Tier Selector */}
             <div>
                 <label className="block mb-2 text-sm text-gray-400">
-                    Target Tier
+                    <div>Target Tier</div>
                     <select
                         value={config.tier}
                         onChange={(e) => actions.setTier(e.target.value)}
@@ -121,7 +121,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
             {!['CHALLENGER', 'GRANDMASTER', 'MASTER'].includes(config.tier) && (
                 <div>
                     <label className="block mb-2 text-sm text-gray-400">
-                        Division
+                        <div>Division</div>
                         <select
                             value={config.division}
                             onChange={(e) => actions.setDivision(e.target.value)}
@@ -137,7 +137,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
             {/* Rate Limit */}
             <div>
                 <label className="block mb-2 text-sm text-gray-400">
-                    Rate Limit (req/s)
+                    <div>Rate Limit (req/s)</div>
                     <input
                         type="number"
                         value={config.rateLimit}
@@ -153,7 +153,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
             <div className="flex gap-4">
                 {!status.isScanning ? (
                     <button
-                        onClick={() => void actions.startScan()}
+                        onClick={() => { actions.startScan(); }}
                         className={`flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl 
                             font-bold flex items-center justify-center gap-2 transition`}
                     >
@@ -161,7 +161,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
                     </button>
                 ) : (
                     <button
-                        onClick={() => void actions.stopScan()}
+                        onClick={() => { actions.stopScan(); }}
                         className={`flex-1 bg-red-600 hover:bg-red-500 text-white py-4 rounded-xl 
                             font-bold flex items-center justify-center gap-2 transition`}
                     >
@@ -170,7 +170,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
                 )}
             </div>
             <button
-                onClick={() => void actions.reset()}
+                onClick={() => { actions.reset(); }}
                 className={`w-full bg-white/5 hover:bg-white/10 text-gray-400 py-3 rounded-xl 
                     font-bold flex items-center justify-center gap-2 transition border border-white/5`}
             >

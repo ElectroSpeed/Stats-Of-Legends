@@ -80,38 +80,29 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
 
         {/* Season Selector */}
         <div className="bg-[#121212] border border-white/5 rounded-[1.5rem] p-4 relative z-20">
-          <div
-            role="button"
-            tabIndex={0}
-            className={`text-xs font-bold text-lol-gold uppercase tracking-widest mb-3 px-2 
-              flex items-center justify-between cursor-pointer hover:text-white transition-colors`}
+          <button
+            type="button"
+            className={`w-full text-xs font-bold text-lol-gold uppercase tracking-widest mb-3 px-2 
+              flex items-center justify-between cursor-pointer hover:text-white transition-colors bg-transparent border-none`}
             onClick={() => setIsSeasonMenuOpen(!isSeasonMenuOpen)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsSeasonMenuOpen(!isSeasonMenuOpen); }}
           >
             {activeSeason}
             <ChevronDown className={`w-3 h-3 transition-transform ${isSeasonMenuOpen ? 'rotate-180' : ''}`} />
-          </div>
+          </button>
 
           {isSeasonMenuOpen && (
             <div className={`absolute top-full left-0 w-full mt-2 bg-[#1a1a1a] border border-white/10 
               rounded-xl shadow-xl overflow-hidden animate-fadeIn z-50`}>
               {SEASONS.map(season => (
-                <div
+                <button
                   key={season}
-                  role="button"
-                  tabIndex={0}
-                  className={`px-4 py-3 text-xs font-bold cursor-pointer hover:bg-white/5 
+                  type="button"
+                  className={`w-full text-left px-4 py-3 text-xs font-bold cursor-pointer hover:bg-white/5 bg-transparent border-none
                     ${activeSeason === season ? 'text-lol-gold bg-white/5' : 'text-gray-400'}`}
                   onClick={() => { setActiveSeason(season); setIsSeasonMenuOpen(false); }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      setActiveSeason(season);
-                      setIsSeasonMenuOpen(false);
-                    }
-                  }}
                 >
                   {season}
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -156,26 +147,40 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
             <thead>
               <tr className="text-[10px] uppercase text-gray-500 font-bold border-b border-white/5 bg-[#18181b]">
                 <th className="p-4 text-center w-10">#</th>
-                <th role="columnheader" tabIndex={0} className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('name')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('name'); }}>
-                  Champion <SortIcon column="name" />
+                <th className="p-4 cursor-pointer hover:text-white">
+                  <button type="button" className="w-full h-full flex items-center justify-start gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('name')}>
+                     Champion <SortIcon column="name" />
+                  </button>
                 </th>
-                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('games')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('games'); }}>
-                  Games <SortIcon column="games" />
+                <th className="p-4 text-center cursor-pointer hover:text-white">
+                   <button type="button" className="w-full h-full flex items-center justify-center gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('games')}>
+                      Games <SortIcon column="games" />
+                   </button>
                 </th>
-                <th role="columnheader" tabIndex={0} className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('wins')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('wins'); }}>
-                  Win/Lose (WR) <SortIcon column="wins" />
+                <th className="p-4 cursor-pointer hover:text-white">
+                   <button type="button" className="w-full h-full flex items-center justify-start gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('wins')}>
+                      Win/Lose (WR) <SortIcon column="wins" />
+                   </button>
                 </th>
-                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('kda')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('kda'); }}>
-                  KDA <SortIcon column="kda" />
+                <th className="p-4 text-center cursor-pointer hover:text-white">
+                   <button type="button" className="w-full h-full flex items-center justify-center gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('kda')}>
+                      KDA <SortIcon column="kda" />
+                   </button>
                 </th>
-                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('dmgPerMinute')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('dmgPerMinute'); }}>
-                  DMG/M <SortIcon column="dmgPerMinute" />
+                <th className="p-4 text-center cursor-pointer hover:text-white">
+                  <button type="button" className="w-full h-full flex items-center justify-center gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('dmgPerMinute')}>
+                     DMG/M <SortIcon column="dmgPerMinute" />
+                  </button>
                 </th>
-                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('csPerMinute')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('csPerMinute'); }}>
-                  CS/M <SortIcon column="csPerMinute" />
+                <th className="p-4 text-center cursor-pointer hover:text-white">
+                   <button type="button" className="w-full h-full flex items-center justify-center gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('csPerMinute')}>
+                      CS/M <SortIcon column="csPerMinute" />
+                   </button>
                 </th>
-                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('gd15')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('gd15'); }}>
-                  GD@{GD_TIME_MINUTES} <SortIcon column="gd15" />
+                <th className="p-4 text-center cursor-pointer hover:text-white">
+                   <button type="button" className="w-full h-full flex items-center justify-center gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('gd15')}>
+                      GD@{GD_TIME_MINUTES} <SortIcon column="gd15" />
+                   </button>
                 </th>
               </tr>
             </thead>
