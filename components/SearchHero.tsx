@@ -261,8 +261,15 @@ export const SearchHero: React.FC<SearchHeroProps> = ({ onSearch, seasonInfo, la
                         </div>
                       </div>
                       <div
-                        className="p-1.5 rounded-full hover:bg-white/10 text-gray-500 hover:text-white opacity-0 group-hover/item:opacity-100 transition-all"
+                        role="button"
+                        tabIndex={0}
+                        className="p-1.5 rounded-full hover:bg-white/10 text-gray-500 hover:text-white opacity-0 group-hover/item:opacity-100 transition-all cursor-pointer focus:opacity-100 focus:outline-none"
                         onClick={(e) => removeRecent(e, i)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            removeRecent(e as any, i);
+                          }
+                        }}
                       >
                         <X className="w-3 h-3" />
                       </div>

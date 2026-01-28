@@ -215,9 +215,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {LANGUAGES.map(lang => (
                     <div
                       key={lang}
+                      role="button"
+                      tabIndex={0}
                       className={`px-4 py-2 text-xs font-bold hover:bg-white/5 cursor-pointer flex items-center 
                         justify-between group ${currentLang === lang ? 'text-lol-gold' : 'text-gray-400'}`}
                       onClick={() => { setCurrentLang(lang); setIsLangMenuOpen(false); }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          setCurrentLang(lang);
+                          setIsLangMenuOpen(false);
+                        }
+                      }}
                     >
                       {lang}
                       {currentLang === lang && <div className="w-1.5 h-1.5 rounded-full bg-lol-gold shadow-glow-gold"></div>}

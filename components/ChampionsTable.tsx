@@ -98,9 +98,17 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
               {SEASONS.map(season => (
                 <div
                   key={season}
+                  role="button"
+                  tabIndex={0}
                   className={`px-4 py-3 text-xs font-bold cursor-pointer hover:bg-white/5 
                     ${activeSeason === season ? 'text-lol-gold bg-white/5' : 'text-gray-400'}`}
                   onClick={() => { setActiveSeason(season); setIsSeasonMenuOpen(false); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setActiveSeason(season);
+                      setIsSeasonMenuOpen(false);
+                    }
+                  }}
                 >
                   {season}
                 </div>
@@ -154,19 +162,19 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
                 <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('games')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('games'); }}>
                   Games <SortIcon column="games" />
                 </th>
-                <th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('wins')}>
+                <th role="columnheader" tabIndex={0} className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('wins')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('wins'); }}>
                   Win/Lose (WR) <SortIcon column="wins" />
                 </th>
                 <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('kda')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('kda'); }}>
                   KDA <SortIcon column="kda" />
                 </th>
-                <th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('dmgPerMinute')}>
+                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('dmgPerMinute')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('dmgPerMinute'); }}>
                   DMG/M <SortIcon column="dmgPerMinute" />
                 </th>
-                <th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('csPerMinute')}>
+                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('csPerMinute')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('csPerMinute'); }}>
                   CS/M <SortIcon column="csPerMinute" />
                 </th>
-                <th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('gd15')}>
+                <th role="columnheader" tabIndex={0} className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('gd15')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSort('gd15'); }}>
                   GD@{GD_TIME_MINUTES} <SortIcon column="gd15" />
                 </th>
               </tr>

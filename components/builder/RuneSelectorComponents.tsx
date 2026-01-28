@@ -60,7 +60,7 @@ export const RuneIcon = ({ rune, isSelected, onClick, isKeystone, size = 48 }: R
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-[#1a1a1a] border border-lol-gold/30 p-3 rounded-xl shadow-xl z-50 hidden group-hover:block pointer-events-none">
             <h4 className="text-lol-gold font-bold text-sm mb-1">{rune.name}</h4>
             <p className="text-[10px] text-gray-400 leading-tight">
-                {rune.shortDesc.replace(/<[^>]*>?/gm, '')}
+                {rune.shortDesc.replaceAll(/<[^>]*>?/gm, '')}
             </p>
         </div>
     </div>
