@@ -202,7 +202,7 @@ export class MatchProcessor {
                 );
 
                 if (startingEvents.length > 0) {
-                    const startIds = startingEvents.map(e => e.itemId).sort().join('-');
+                    const startIds = startingEvents.map(e => e.itemId).sort((a: number, b: number) => a - b).join('-');
                     const key = `start_${startIds}`;
                     if (!items[key]) items[key] = { wins: 0, matches: 0 };
                     items[key].wins += p.win ? 1 : 0;

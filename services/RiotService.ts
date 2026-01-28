@@ -43,10 +43,11 @@ export async function mapWithConcurrency<T, R>(
   return results;
 }
 
-const fetchWithRetry = async (url: string, options: RequestInit = { headers: getHeaders() }) => {
+const fetchWithRetry = async (url: string, options?: RequestInit) => {
+  const finalOptions = options || { headers: getHeaders() };
   let retries = 0;
   while (retries < 3) {
-    const res = await fetch(url, options);
+    const res = await fetch(url, finalOptions);
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After');
       const waitTime = retryAfter ? Number.parseInt(retryAfter) * 1000 : 1000;
@@ -66,7 +67,7 @@ const fetchWithRetry = async (url: string, options: RequestInit = { headers: get
     }
     return res;
   }
-  return fetch(url, options);
+  return fetch(url, finalOptions);
 };
 
 export async function riotFetchRaw(url: string, priority: Priority = 'BACKGROUND') {

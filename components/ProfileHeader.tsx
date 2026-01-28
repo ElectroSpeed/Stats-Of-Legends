@@ -133,14 +133,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, lang, onU
                   Mettre à jour
                 </span>
               </button>
-              <span className="text-[10px] text-gray-600 font-bold uppercase tracking-wider flex flex-col items-start">
+              <div className="text-[10px] text-gray-600 font-bold uppercase tracking-wider flex flex-col items-start">
                 <span>{getLastUpdatedText()}</span>
                 {profile.lastUpdateLog && (
                   <span className="text-orange-400 text-[9px] mt-0.5 normal-case tracking-normal">
                     {profile.lastUpdateLog}
                   </span>
                 )}
-              </span>
+              </div>
             </div>
           </div>
         </div>

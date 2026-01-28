@@ -23,10 +23,11 @@ export const BuilderItemSlot: React.FC<BuilderItemSlotProps> = ({ item, index, o
                 }`}
         >
             {item ? (
-                <div
+                <button
+                    type="button"
                     draggable
                     onDragStart={(e) => onDragStart(e, 'slot', index)}
-                    className="w-full h-full relative cursor-grab active:cursor-grabbing p-1.5"
+                    className={`w-full h-full relative cursor-grab active:cursor-grabbing p-1.5 focus:outline-none focus:ring-2 focus:ring-lol-gold rounded-[1.2rem] block p-0 border-none bg-transparent appearance-none text-left`}
                 >
                     <Image src={item.imageUrl} width={96} height={96} alt={item.name} className="w-full h-full object-cover rounded-[1.2rem]" />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center rounded-[1.2rem]">
@@ -46,7 +47,7 @@ export const BuilderItemSlot: React.FC<BuilderItemSlotProps> = ({ item, index, o
                         </div>
                         {item.passive && <div className="text-[10px] text-gray-400 border-t border-gray-800 mt-3 pt-2"><span className="text-lol-gold font-bold">Passif:</span> {item.passive}</div>}
                     </div>
-                </div>
+                </button>
             ) : (
                 <Plus className="w-8 h-8 text-gray-800 group-hover:text-gray-600 transition-colors" />
             )}

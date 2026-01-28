@@ -15,16 +15,19 @@ const LoginScreen = ({ secretKey, setSecretKey, handleLogin }: any) => (
                 <Shield className="w-16 h-16 text-lol-gold" />
             </div>
             <h1 className="text-2xl font-bold text-center text-white">Admin Access</h1>
-            <input
-                type="password"
-                value={secretKey}
-                onChange={(e) => setSecretKey(e.target.value)}
-                placeholder="Enter Admin Key"
-                className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
+            <label className="block w-full">
+                <span className="sr-only">Admin Key</span>
+                <input
+                    type="password"
+                    value={secretKey}
+                    onChange={(e) => setSecretKey(e.target.value)}
+                    placeholder="Enter Admin Key"
+                    className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
                     text-white focus:border-lol-gold outline-none`}
-            />
+                />
+            </label>
             <button
-                onClick={handleLogin}
+                onClick={() => { handleLogin(); }}
                 className="w-full bg-lol-gold text-black font-bold py-3 rounded-lg hover:bg-yellow-500 transition"
             >
                 Unlock Dashboard
@@ -86,58 +89,63 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
 
             {/* Region Selector */}
             <div>
-                <label className="text-sm text-gray-400 block mb-2">Region</label>
-                <select
-                    value={config.region}
-                    onChange={(e) => actions.setRegion(e.target.value)}
-                    className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
+                <label className="block mb-2 text-sm text-gray-400">
+                    <div>Region</div>
+                    <select
+                        value={config.region}
+                        onChange={(e) => actions.setRegion(e.target.value)}
+                        className={`mt-1 w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
                         text-white focus:border-lol-gold outline-none`}
-                >
-                    {options.regions.map((r: string) => <option key={r} value={r}>{r.toUpperCase()}</option>)}
-                </select>
+                    >
+                        {options.regions.map((r: string) => <option key={r} value={r}>{r.toUpperCase()}</option>)}
+                    </select>
+                </label>
             </div>
 
             {/* Tier Selector */}
             <div>
-                      <label htmlFor="tier" className="text-sm text-gray-400 block mb-2">Target Tier</label>
-                      <select
-                        id="tier"
+                <label className="block mb-2 text-sm text-gray-400">
+                    <div>Target Tier</div>
+                    <select
                         value={config.tier}
-                    onChange={(e) => actions.setTier(e.target.value)}
-                    className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
+                        onChange={(e) => actions.setTier(e.target.value)}
+                        className={`mt-1 w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
                         text-white focus:border-lol-gold outline-none`}
-                >
-                    {options.tiers.map((t: string) => <option key={t} value={t}>{t}</option>)}
-                </select>
+                    >
+                        {options.tiers.map((t: string) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                </label>
             </div>
 
             {/* Division Selector (Hidden for Apex Tiers) */}
             {!['CHALLENGER', 'GRANDMASTER', 'MASTER'].includes(config.tier) && (
                 <div>
-                      <label htmlFor="division" className="text-sm text-gray-400 block mb-2">Division</label>
-                      <select
-                        id="division"
-                        value={config.division}
-                        onChange={(e) => actions.setDivision(e.target.value)}
-                        className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
+                    <label className="block mb-2 text-sm text-gray-400">
+                        <div>Division</div>
+                        <select
+                            value={config.division}
+                            onChange={(e) => actions.setDivision(e.target.value)}
+                            className={`mt-1 w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
                             text-white focus:border-lol-gold outline-none`}
-                    >
-                        {options.divisions.map((d: string) => <option key={d} value={d}>{d}</option>)}
-                    </select>
+                        >
+                            {options.divisions.map((d: string) => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                    </label>
                 </div>
             )}
 
             {/* Rate Limit */}
             <div>
-                      <label htmlFor="rateLimit" className="text-sm text-gray-400 block mb-2">Rate Limit (req/s)</label>
-                      <input
-                        id="rateLimit"
+                <label className="block mb-2 text-sm text-gray-400">
+                    <div>Rate Limit (req/s)</div>
+                    <input
                         type="number"
-                    value={config.rateLimit}
-                    onChange={(e) => actions.setRateLimit(Number(e.target.value))}
-                    className={`w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
+                        value={config.rateLimit}
+                        onChange={(e) => actions.setRateLimit(Number(e.target.value))}
+                        className={`mt-1 w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 
                         text-white focus:border-lol-gold outline-none`}
-                />
+                    />
+                </label>
             </div>
 
             <div className="h-px bg-white/10 my-4" />
@@ -145,7 +153,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
             <div className="flex gap-4">
                 {!status.isScanning ? (
                     <button
-                        onClick={actions.startScan}
+                        onClick={() => { actions.startScan(); }}
                         className={`flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl 
                             font-bold flex items-center justify-center gap-2 transition`}
                     >
@@ -153,7 +161,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
                     </button>
                 ) : (
                     <button
-                        onClick={actions.stopScan}
+                        onClick={() => { actions.stopScan(); }}
                         className={`flex-1 bg-red-600 hover:bg-red-500 text-white py-4 rounded-xl 
                             font-bold flex items-center justify-center gap-2 transition`}
                     >
@@ -162,7 +170,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
                 )}
             </div>
             <button
-                onClick={actions.reset}
+                onClick={() => { actions.reset(); }}
                 className={`w-full bg-white/5 hover:bg-white/10 text-gray-400 py-3 rounded-xl 
                     font-bold flex items-center justify-center gap-2 transition border border-white/5`}
             >

@@ -196,32 +196,31 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Language Switcher */}
             <div className="relative">
-              <div
-                role="button"
-                tabIndex={0}
+              <button
+                type="button"
                 className={`hidden md:flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full 
-                  border border-white/5 hover:border-lol-gold/30 hover:bg-white/5 transition group`}
+                  border border-white/5 hover:border-lol-gold/30 hover:bg-white/5 transition group bg-transparent`}
                 onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsLangMenuOpen(!isLangMenuOpen); }}
               >
                 <Globe className="w-4 h-4 text-gray-400 group-hover:text-lol-gold transition-colors" />
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-300">{currentLang}</span>
                 <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${isLangMenuOpen ? 'rotate-180' : ''}`} />
-              </div>
+              </button>
 
               {isLangMenuOpen && (
                 <div className={`absolute right-0 top-full mt-3 w-32 bg-[#121212] border border-white/10 
                   rounded-2xl shadow-2xl py-2 z-50 animate-fadeIn overflow-hidden`}>
                   {LANGUAGES.map(lang => (
-                    <div
+                    <button
                       key={lang}
-                      className={`px-4 py-2 text-xs font-bold hover:bg-white/5 cursor-pointer flex items-center 
-                        justify-between group ${currentLang === lang ? 'text-lol-gold' : 'text-gray-400'}`}
+                      type="button"
+                      className={`w-full px-4 py-2 text-xs font-bold hover:bg-white/5 cursor-pointer flex items-center 
+                        justify-between group bg-transparent border-none ${currentLang === lang ? 'text-lol-gold' : 'text-gray-400'}`}
                       onClick={() => { setCurrentLang(lang); setIsLangMenuOpen(false); }}
                     >
                       {lang}
                       {currentLang === lang && <div className="w-1.5 h-1.5 rounded-full bg-lol-gold shadow-glow-gold"></div>}
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
