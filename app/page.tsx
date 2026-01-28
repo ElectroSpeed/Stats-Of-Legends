@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { SearchHero } from '../components/SearchHero';
 import { useLanguage } from './LanguageContext';
 import { TRANSLATIONS } from '../constants';
@@ -14,7 +15,9 @@ export default function Home() {
   return (
     <div className="animate-fadeIn">
       {/* SearchHero now reads language from context */}
-      <SearchHero />
+      <React.Suspense fallback={<div className="h-[600px] w-full bg-[#050505] animate-pulse" />}>
+        <SearchHero />
+      </React.Suspense>
 
       <div className="max-w-7xl mx-auto px-4 py-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">

@@ -21,53 +21,81 @@ const sample = {
 function extractTextFromResponse(response) {
   if (!response) return { text: '', truncated: false };
   if (typeof response === 'string') return { text: response, truncated: false };
-  if (response.text && typeof response.text === 'string') return { text: response.text, truncated: response.finishReason === 'MAX_TOKENS' || false };
+  if (response.text && typeof response.text === 'string') {
+    return { text: response.text, truncated: response.finishReason === 'MAX_TOKENS' || false };
+  }
 
-  const extractFromContent = (content) => {
-    if (!content) return null;
-    if (typeof content === 'string') return content;
-    if (typeof content.text === 'string' && content.text.trim().length) return content.text;
-    if (Array.isArray(content.parts) && content.parts.length) return content.parts.join('');
-    if (Array.isArray(content) && content.length) {
-      const first = content[0];
-      if (typeof first === 'string') return first;
-      if (first && typeof first.text === 'string') return first.text;
-      if (first && Array.isArray(first.parts)) return first.parts.join('');
-    }
-    if (content.content && Array.isArray(content.content) && content.content[0]) {
-      const c0 = content.content[0];
-      if (typeof c0 === 'string') return c0;
-      if (c0 && typeof c0.text === 'string') return c0.text;
-      if (c0 && Array.isArray(c0.parts)) return c0.parts.join('');
-    }
-    return null;
-  };
+  const outputResult = extractFromOutput(response);
+  if (outputResult) return outputResult;
 
+  const candidateResult = extractFromCandidates(response);
+  if (candidateResult) return candidateResult;
+
+  return { text: getFallback(response), truncated: response.finishReason === 'MAX_TOKENS' };
+}
+
+function extractFromContent(content) {
+  if (!content) return null;
+  if (typeof content === 'string') return content;
+  if (typeof content.text === 'string' && content.text.trim().length) return content.text;
+  
+  if (Array.isArray(content.parts) && content.parts.length) return content.parts.join('');
+  
+  if (Array.isArray(content)) return extractFromArray(content);
+  
+  // Recursively check nested content (legacy/google format sometimes)
+  if (content.content) return extractFromContent(content.content);
+  
+  return null;
+}
+
+function extractFromArray(arr) {
+  if (!arr.length) return null;
+  const first = arr[0];
+  return extractFromContent(first);
+}
+
+function extractFromOutput(response) {
   if (response.output && Array.isArray(response.output) && response.output[0]) {
     const first = response.output[0];
     const t = extractFromContent(first);
-    if (t) return { text: t, truncated: response.finishReason === 'MAX_TOKENS' || first.finishReason === 'MAX_TOKENS' || false };
-  }
-
-  let truncated = response.finishReason === 'MAX_TOKENS';
-  if (response.candidates && Array.isArray(response.candidates) && response.candidates.length) {
-    for (const c of response.candidates) {
-      if (c && c.finishReason === 'MAX_TOKENS') truncated = true;
-      if (typeof c.output === 'string' && c.output.trim().length) return { text: c.output, truncated };
-      const t = extractFromContent(c.content) || extractFromContent(c);
-      if (t) return { text: t, truncated };
+    if (t) {
+      return { 
+        text: t, 
+        truncated: response.finishReason === 'MAX_TOKENS' || first.finishReason === 'MAX_TOKENS' || false 
+      };
     }
   }
+  return null;
+}
 
-  const fallback = (() => {
-    try {
-      if (response.candidates) return JSON.stringify(response.candidates);
-      if (response.output) return JSON.stringify(response.output);
-      return JSON.stringify(response);
-    } catch (e) { return '' }
-  })();
+function extractFromCandidates(response) {
+  if (!response.candidates || !Array.isArray(response.candidates) || !response.candidates.length) return null;
 
-  return { text: fallback, truncated };
+  let truncated = response.finishReason === 'MAX_TOKENS';
+  for (const c of response.candidates) {
+    if (c && c.finishReason === 'MAX_TOKENS') truncated = true;
+    
+    let text = null;
+    if (typeof c.output === 'string' && c.output.trim().length) {
+      text = c.output;
+    } else {
+      text = extractFromContent(c.content) || extractFromContent(c);
+    }
+
+    if (text) return { text, truncated };
+  }
+  return null;
+}
+
+function getFallback(response) {
+  try {
+    if (response.candidates) return JSON.stringify(response.candidates);
+    if (response.output) return JSON.stringify(response.output);
+    return JSON.stringify(response);
+  } catch (e) { 
+    return ''; 
+  }
 }
 
 console.log('--- Test extractTextFromResponse ---');

@@ -35,6 +35,30 @@ export class DataDragonService {
     }
 
     private static processSpell(spell: any, idx: number) {
+        const base = this.parseBaseDamage(spell);
+        const { apRatio, adRatio } = this.extractScalingRatios(spell);
+
+        const rawDamageType = (spell.damageType || '').toLowerCase();
+        let damageType = 'magic';
+        if (rawDamageType === 'physical') damageType = 'physical';
+        else if (rawDamageType === 'true') damageType = 'true';
+
+        return {
+            id: SPELL_KEYS_MAP[idx] || String(idx),
+            name: spell.name,
+            imageFull: spell.image?.full || null,
+            description: spell.description || '',
+            tooltip: spell.tooltip || '',
+            maxRank: spell.maxrank || spell.maxRank || 5,
+            cooldown: spell.cooldown || [],
+            cost: spell.cost || [],
+            baseDamage: base,
+            ratios: { ap: apRatio, ad: adRatio },
+            damageType,
+        };
+    }
+
+    private static parseBaseDamage(spell: any): number[] {
         let base: number[] = [];
         if (Array.isArray(spell.effect) && spell.effect[1]) {
             base = (spell.effect[1] as number[]).map(v => Number(v) || 0);
@@ -56,7 +80,10 @@ export class DataDragonService {
             else if (maxRank === 4) base = DEFAULT_BASE_DAMAGE_4_RANKS;
             else base = DEFAULT_BASE_DAMAGE_5_RANKS;
         }
+        return base;
+    }
 
+    private static extractScalingRatios(spell: any): { apRatio: number, adRatio: number } {
         let apRatio = 0;
         let adRatio = 0;
         if (Array.isArray(spell.vars)) {
@@ -71,25 +98,7 @@ export class DataDragonService {
                 }
             }
         }
-
-        const rawDamageType = (spell.damageType || '').toLowerCase();
-        let damageType = 'magic';
-        if (rawDamageType === 'physical') damageType = 'physical';
-        else if (rawDamageType === 'true') damageType = 'true';
-
-        return {
-            id: SPELL_KEYS_MAP[idx] || String(idx),
-            name: spell.name,
-            imageFull: spell.image?.full || null,
-            description: spell.description || '',
-            tooltip: spell.tooltip || '',
-            maxRank: maxRank,
-            cooldown: spell.cooldown || [],
-            cost: spell.cost || [],
-            baseDamage: base,
-            ratios: { ap: apRatio, ad: adRatio },
-            damageType,
-        };
+        return { apRatio, adRatio };
     }
 
     static async getChampions(patch: string = 'latest', locale: string = 'en_US') {

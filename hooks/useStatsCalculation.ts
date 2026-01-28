@@ -34,24 +34,22 @@ export function useStatsCalculation(
 
         const bonusAsFromLevel = (growth?.attackSpeed || 0) * lvlMod;
 
-        let itemBonusAs = 0;
-        selectedItems.forEach(item => {
-            if (item && item.stats) {
-                if (item.stats.ad) computedStats.ad += item.stats.ad;
-                if (item.stats.ap) computedStats.ap += item.stats.ap;
-                if (item.stats.hp) computedStats.hp += item.stats.hp;
-                if (item.stats.mp) computedStats.mp += item.stats.mp;
-                if (item.stats.mpRegen) computedStats.mpRegen += item.stats.mpRegen;
-                if (item.stats.armor) computedStats.armor += item.stats.armor;
-                if (item.stats.mr) computedStats.mr += item.stats.mr;
-                if (item.stats.haste) computedStats.haste += item.stats.haste;
-                if (item.stats.crit) computedStats.crit += item.stats.crit;
-                if (item.stats.moveSpeed) computedStats.moveSpeed += item.stats.moveSpeed;
-                if (item.stats.attackSpeed) itemBonusAs += item.stats.attackSpeed;
-                if (item.stats.magicPen) computedStats.magicPen = (computedStats.magicPen || 0) + item.stats.magicPen;
-                if (item.stats.lethality) computedStats.lethality = (computedStats.lethality || 0) + item.stats.lethality;
-            }
-        });
+        const { itemStats, itemBonusAs } = aggregateItemStats(selectedItems);
+
+        // Apply item stats
+        computedStats.ad += itemStats.ad || 0;
+        computedStats.ap += itemStats.ap || 0;
+        computedStats.hp += itemStats.hp || 0;
+        computedStats.mp += itemStats.mp || 0;
+        computedStats.mpRegen += itemStats.mpRegen || 0;
+        computedStats.armor += itemStats.armor || 0;
+        computedStats.mr += itemStats.mr || 0;
+        computedStats.haste += itemStats.haste || 0;
+        computedStats.crit += itemStats.crit || 0;
+        computedStats.moveSpeed += itemStats.moveSpeed || 0;
+        
+        if (itemStats.magicPen) computedStats.magicPen = (computedStats.magicPen || 0) + itemStats.magicPen;
+        if (itemStats.lethality) computedStats.lethality = (computedStats.lethality || 0) + itemStats.lethality;
 
         const totalBonusAs = bonusAsFromLevel + itemBonusAs;
         computedStats.attackSpeed = computedStats.attackSpeed * (1 + (totalBonusAs / 100));
@@ -60,4 +58,29 @@ export function useStatsCalculation(
     }, [selectedItems, currentChampion, championLevel]);
 
     return stats;
+}
+
+function aggregateItemStats(items: (Item | null)[]) {
+    const itemStats: Partial<Stats> = {};
+    let itemBonusAs = 0;
+
+    items.forEach(item => {
+        if (!item?.stats) return;
+
+        if (item.stats.ad) itemStats.ad = (itemStats.ad || 0) + item.stats.ad;
+        if (item.stats.ap) itemStats.ap = (itemStats.ap || 0) + item.stats.ap;
+        if (item.stats.hp) itemStats.hp = (itemStats.hp || 0) + item.stats.hp;
+        if (item.stats.mp) itemStats.mp = (itemStats.mp || 0) + item.stats.mp;
+        if (item.stats.mpRegen) itemStats.mpRegen = (itemStats.mpRegen || 0) + item.stats.mpRegen;
+        if (item.stats.armor) itemStats.armor = (itemStats.armor || 0) + item.stats.armor;
+        if (item.stats.mr) itemStats.mr = (itemStats.mr || 0) + item.stats.mr;
+        if (item.stats.haste) itemStats.haste = (itemStats.haste || 0) + item.stats.haste;
+        if (item.stats.crit) itemStats.crit = (itemStats.crit || 0) + item.stats.crit;
+        if (item.stats.moveSpeed) itemStats.moveSpeed = (itemStats.moveSpeed || 0) + item.stats.moveSpeed;
+        if (item.stats.attackSpeed) itemBonusAs += item.stats.attackSpeed;
+        if (item.stats.magicPen) itemStats.magicPen = (itemStats.magicPen || 0) + item.stats.magicPen;
+        if (item.stats.lethality) itemStats.lethality = (itemStats.lethality || 0) + item.stats.lethality;
+    });
+
+    return { itemStats, itemBonusAs };
 }

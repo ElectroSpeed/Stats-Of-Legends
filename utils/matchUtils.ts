@@ -103,8 +103,18 @@ export const processItemBuild = (events: any[], me: any, version: string, getIte
     );
     myEvents.sort((a: any, b: any) => (a.timestamp || 0) - (b.timestamp || 0));
 
+    const cleanEvents = filterUndoEvents(myEvents);
+
+    for (const ev of cleanEvents) {
+        const entry = createItemBuildEntry(ev, version, getItemIconUrl);
+        if (entry) itemBuild.push(entry);
+    }
+    return itemBuild;
+};
+
+const filterUndoEvents = (events: any[]) => {
     const cleanEvents: any[] = [];
-    for (const ev of myEvents) {
+    for (const ev of events) {
         if (ev.type === 'ITEM_PURCHASED' || ev.type === 'ITEM_SOLD') {
             cleanEvents.push(ev);
         } else if (ev.type === 'ITEM_UNDO') {
@@ -119,26 +129,27 @@ export const processItemBuild = (events: any[], me: any, version: string, getIte
             }
         }
     }
+    return cleanEvents;
+};
 
-    for (const ev of cleanEvents) {
-        const itemId = ev.itemId || ev.itemIdPurchased || ev.itemIdSold || ev.itemIdAdded || null;
-        if (!itemId) continue;
-        const ts = Math.floor((ev.timestamp || 0) / 1000);
-        const mm = Math.floor(ts / 60);
-        const ss = ts % 60;
-        const timestamp = `${mm}m ${ss}s`;
-        const action = ev.type || 'ITEM_PURCHASED';
+const createItemBuildEntry = (ev: any, version: string, getItemIconUrl: (id: number, v: string) => string) => {
+    const itemId = ev.itemId || ev.itemIdPurchased || ev.itemIdSold || ev.itemIdAdded || null;
+    if (!itemId) return null;
 
-        itemBuild.push({
-            timestamp,
-            action,
-            item: {
-                id: itemId,
-                imageUrl: getItemIconUrl(itemId, version),
-                name: `Item ${itemId}`,
-                tags: [],
-            },
-        });
-    }
-    return itemBuild;
+    const ts = Math.floor((ev.timestamp || 0) / 1000);
+    const mm = Math.floor(ts / 60);
+    const ss = ts % 60;
+    const timestamp = `${mm}m ${ss}s`;
+    const action = ev.type || 'ITEM_PURCHASED';
+
+    return {
+        timestamp,
+        action,
+        item: {
+            id: itemId,
+            imageUrl: getItemIconUrl(itemId, version),
+            name: `Item ${itemId}`,
+            tags: [],
+        },
+    };
 };

@@ -22,53 +22,68 @@ async function streamResponseToText(ai: any, prompt: string, model: string, maxT
   }
 }
 
+const tryExtractString = (content: any): string | null => {
+  if (!content) return null;
+  if (typeof content === 'string') return content;
+  if (typeof content.text === 'string' && content.text.trim().length) return content.text;
+  return null;
+};
+
+const extractFromParts = (content: any): string | null => {
+  if (Array.isArray(content.parts) && content.parts.length) {
+    return content.parts.join('');
+  }
+  return null;
+};
+
+const extractFromContent = (content: any): string | null => {
+  const directText = tryExtractString(content);
+  if (directText) return directText;
+
+  const partsText = extractFromParts(content);
+  if (partsText) return partsText;
+
+  if (Array.isArray(content) && content.length) {
+    return extractFromContent(content[0]);
+  }
+
+  if (content.content && Array.isArray(content.content) && content.content[0]) {
+    return extractFromContent(content.content[0]);
+  }
+
+  return null;
+};
+
+const checkTruncation = (obj: any): boolean => {
+  return obj && obj.finishReason === 'MAX_TOKENS';
+};
+
 function extractTextFromResponse(response: any): { text: string; truncated: boolean } {
   if (!response) return { text: '', truncated: false };
+  
+  // 1. Direct Text Check
+  const simpleText = tryExtractString(response);
+  if (simpleText) return { text: simpleText, truncated: checkTruncation(response) };
 
-  const extractFromContent = (content: any): string | null => {
-    if (!content) return null;
-    if (typeof content === 'string') return content;
-    if (typeof content.text === 'string' && content.text.trim().length) return content.text;
-    if (Array.isArray(content.parts) && content.parts.length) return content.parts.join('');
-    if (Array.isArray(content) && content.length) {
-      const first = content[0];
-      if (typeof first === 'string') return first;
-      if (first && typeof first.text === 'string') return first.text;
-      if (first && Array.isArray(first.parts)) return first.parts.join('');
-    }
-    if (content.content && Array.isArray(content.content) && content.content[0]) {
-      const c0 = content.content[0];
-      if (typeof c0 === 'string') return c0;
-      if (c0 && typeof c0.text === 'string') return c0.text;
-      if (c0 && Array.isArray(c0.parts)) return c0.parts.join('');
-    }
-    return null;
-  };
+  let truncated = checkTruncation(response);
 
-  if (typeof response === 'string') return { text: response, truncated: false };
-  if (response.text && typeof response.text === 'string') return { text: response.text, truncated: response.finishReason === 'MAX_TOKENS' || false };
+  // 2. Output Array Check
+  if (response.output && Array.isArray(response.output) && response.output[0]) {
+    const first = response.output[0];
+    if (checkTruncation(first)) truncated = true;
+    const t = extractFromContent(first);
+    if (t) return { text: t, truncated };
+  }
 
-  let truncated = response.finishReason === 'MAX_TOKENS';
-
-  try {
-    if (response.output && Array.isArray(response.output) && response.output[0]) {
-      const first = response.output[0];
-      if (first && first.finishReason === 'MAX_TOKENS') truncated = true;
-      const t = extractFromContent(first);
-      if (t) return { text: t, truncated };
-    }
-  } catch (e) {}
-
-  if (response.candidates && Array.isArray(response.candidates) && response.candidates.length) {
+  // 3. Candidates Array Check
+  if (response.candidates && Array.isArray(response.candidates)) {
     for (const c of response.candidates) {
-      if (c && c.finishReason === 'MAX_TOKENS') truncated = true;
-      if (typeof c.output === 'string' && c.output.trim().length) return { text: c.output, truncated };
-      const t = extractFromContent(c.content) || extractFromContent(c);
+      if (checkTruncation(c)) truncated = true;
+      const t = tryExtractString(c.output) || extractFromContent(c.content) || extractFromContent(c);
       if (t) return { text: t, truncated };
     }
   }
 
-  // No safe textual content found — do NOT return raw SDK JSON to the client
   return { text: '', truncated };
 }
 
@@ -85,7 +100,7 @@ export async function POST(request: Request) {
     const { champion, itemNames, stats } = body;
 
     const prompt = `
-      You are a Grandmaster Theorycrafter in League of Legends.
+      You are a Challenger Theorycrafter in League of Legends.
       
       Subject: ${champion.name}
       Build: ${itemNames}

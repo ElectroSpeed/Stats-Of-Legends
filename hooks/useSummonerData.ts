@@ -19,28 +19,11 @@ export function useSummonerData(region: string, summonerName: string) {
         else if (!isPolling) setLoading(true);
 
         setUpdateError(null);
-        const nameParam = decodeURIComponent(summonerName);
-        let name = nameParam;
-        let tag = region;
-
-        if (nameParam.includes('-')) {
-            [name, tag] = nameParam.split('-');
-        }
-
+        
         try {
-            const url = new URL(`/api/summoner`, window.location.origin);
-            url.searchParams.append('region', region);
-            url.searchParams.append('name', name);
-            url.searchParams.append('tag', tag);
-            if (isUpdate) {
-                url.searchParams.append('force', 'true');
-            }
-
-            const res = await fetch(url.toString());
-
-            if (res.ok) {
-                const realData = await res.json();
-
+            const realData = await fetchSummonerData(region, summonerName, isUpdate);
+            
+            if (realData) {
                 setProfile(realData.profile as SummonerProfile);
                 setMatches(realData.matches as Match[]);
                 setHeatmap(realData.heatmap as HeatmapDay[]);
@@ -48,22 +31,18 @@ export function useSummonerData(region: string, summonerName: string) {
                 setTeammates(realData.teammates as Teammate[]);
                 setLpHistory(realData.lpHistory || []);
                 setPerformance(realData.performance || null);
-                setPerformance(realData.performance || null);
                 if (realData.version) setVersion(realData.version);
 
                 return (realData.matches as Match[]).length;
-            } else {
-                const errJson = await res.json().catch(() => null);
-                if (errJson?.error === 'RIOT_FORBIDDEN') {
-                    setUpdateError('Impossible de mettre à jour les données : accès Riot API refusé (403).');
-                } else {
-                    setUpdateError('Échec de la mise à jour des données du joueur.');
-                }
-                throw new Error('Fetch summoner failed');
+            }
+        } catch (e: any) {
+            console.error('Failed to fetch summoner', e);
+            if (e.message === 'RIOT_FORBIDDEN') {
+                setUpdateError('Impossible de mettre à jour les données : accès Riot API refusé (403).');
+            } else if (e.message !== 'Fetch failed') { // Specific error handling already done in helper or generic fallback
+                 setUpdateError('Échec de la mise à jour des données du joueur.');
             }
 
-        } catch (e) {
-            console.error('Failed to fetch summoner', e);
             if (!isUpdate && !isPolling) {
                 setProfile(null);
                 setMatches([]);
@@ -77,6 +56,37 @@ export function useSummonerData(region: string, summonerName: string) {
             if (!isPolling) setUpdating(false);
         }
     };
+    
+    // Helper function (outside component or inside hook if needing props, but pure is better)
+    async function fetchSummonerData(r: string, sName: string, forceUpdate: boolean) {
+        const nameParam = decodeURIComponent(sName);
+        let name = nameParam;
+        let tag = r;
+
+        if (nameParam.includes('-')) {
+            [name, tag] = nameParam.split('-');
+        }
+
+        const url = new URL(`/api/summoner`, window.location.origin);
+        url.searchParams.append('region', r);
+        url.searchParams.append('name', name);
+        url.searchParams.append('tag', tag);
+        if (forceUpdate) {
+            url.searchParams.append('force', 'true');
+        }
+
+        const res = await fetch(url.toString());
+
+        if (!res.ok) {
+            const errJson = await res.json().catch(() => null);
+            if (errJson?.error === 'RIOT_FORBIDDEN') {
+                throw new Error('RIOT_FORBIDDEN');
+            }
+            throw new Error('Fetch failed');
+        }
+
+        return await res.json();
+    }
 
     useEffect(() => {
         loadData();
