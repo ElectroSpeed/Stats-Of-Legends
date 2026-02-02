@@ -25,7 +25,7 @@ async function streamResponseToText(ai: any, prompt: string, model: string, maxT
 const tryExtractString = (content: any): string | null => {
   if (!content) return null;
   if (typeof content === 'string') return content;
-  if (typeof content.text === 'string' && content.text.trim().length) return content.text;
+  if (typeof content?.text === 'string' && content.text.trim().length) return content.text;
   return null;
 };
 

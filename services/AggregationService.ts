@@ -163,18 +163,7 @@ export class AggregationService {
             d.setDate(d.getDate() - i);
             const dateStr = d.toISOString().split('T')[0];
             const dayData = heatmapData[dateStr] || { count: 0, wins: 0, losses: 0 };
-
-            let intensity = 0;
-            if (dayData.count > 0) {
-                const wr = dayData.wins / dayData.count;
-                if (dayData.count < 3) {
-                    intensity = wr >= 0.5 ? 2 : 1;
-                } else {
-                    if (wr < 0.4) intensity = 2;
-                    else if (wr <= 0.6) intensity = 3;
-                    else intensity = 4;
-                }
-            }
+            const intensity = this.calculateDayIntensity(dayData);
 
             heatmap.push({
                 date: dateStr,
@@ -185,5 +174,16 @@ export class AggregationService {
             });
         }
         return heatmap;
+    }
+
+    private static calculateDayIntensity(dayData: { count: number; wins: number; losses: number }): number {
+        if (dayData.count === 0) return 0;
+        
+        const wr = dayData.wins / dayData.count;
+        if (dayData.count < 3) return wr >= 0.5 ? 2 : 1;
+        
+        if (wr < 0.4) return 2;
+        if (wr <= 0.6) return 3;
+        return 4;
     }
 }

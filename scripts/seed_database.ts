@@ -225,10 +225,7 @@ async function executeFetchWithRetries(url: string, tier: string, division: stri
             const res = await riotFetchRaw(url);
 
             if (res.ok) {
-                const data = JSON.parse(res.body || '[]');
-                const entries = Array.isArray(data) ? data : data.entries;
-                const shuffled = entries.sort(() => 0.5 - Math.random());
-                return shuffled.slice(0, count);
+                return parseAndShufflePlayers(res.body || '[]', count);
             }
 
             if (res.status === 429) {
@@ -260,6 +257,12 @@ async function executeFetchWithRetries(url: string, tier: string, division: stri
         }
     }
     return [];
+}
+
+function parseAndShufflePlayers(body: string, count: number) {
+    const data = JSON.parse(body);
+    const entries = Array.isArray(data) ? data : data.entries;
+    return entries.sort(() => 0.5 - Math.random()).slice(0, count);
 }
 
 async function processPlayer(entry: any, tier: string, limit: number, onMatchProcessed: () => void) {

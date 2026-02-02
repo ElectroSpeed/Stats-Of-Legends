@@ -57,76 +57,6 @@ export function useSummonerData(region: string, summonerName: string) {
         }
     };
     
-    // Helper function (outside component or inside hook if needing props, but pure is better)
-    async function fetchSummonerData(r: string, sName: string, forceUpdate: boolean) {
-        const nameParam = decodeURIComponent(sName);
-        let name = nameParam;
-        let tag = r;
-
-        if (nameParam.includes('-')) {
-            [name, tag] = nameParam.split('-');
-        }
-
-        const url = new URL(`/api/summoner`, window.location.origin);
-        url.searchParams.append('region', r);
-        url.searchParams.append('name', name);
-        url.searchParams.append('tag', tag);
-        if (forceUpdate) {
-            url.searchParams.append('force', 'true');
-        }
-
-        const res = await fetch(url.toString());
-
-        if (!res.ok) {
-            const errJson = await res.json().catch(() => null);
-            if (errJson?.error === 'RIOT_FORBIDDEN') {
-                throw new Error('RIOT_FORBIDDEN');
-            }
-            throw new Error('Fetch failed');
-        }
-
-        return await res.json();
-    }
-
-    useEffect(() => {
-        loadData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [region, summonerName]);
-
-    const updateData = async () => {
-        setUpdating(true);
-        // 1. Trigger Update (Backend returns immediately)
-        // We pass isPolling=true to PREVENT loadData from setting updating=false in finally block
-        let lastMatchCount = await loadData(true, true) || 0;
-
-        // 2. Poll for updates with Stability Check
-        let attempts = 0;
-        let stabilityCount = 0; // Number of polls with no change
-        const maxAttempts = 30; // Hard limit ~60s
-        const stabilityThreshold = 5; // Stop after 5 polls (10s) with no new data
-
-        const interval = setInterval(async () => {
-            attempts++;
-            // Pass isPolling=true to avoid full loading state
-            const currentCount = await loadData(false, true) || 0;
-
-            if (currentCount > lastMatchCount) {
-                // New data arrived! Reset stability count
-                stabilityCount = 0;
-                lastMatchCount = currentCount;
-            } else {
-                // No change
-                stabilityCount++;
-            }
-
-            // Stop conditions
-            if (stabilityCount >= stabilityThreshold || attempts >= maxAttempts) {
-                clearInterval(interval);
-                setUpdating(false);
-            }
-        }, 2000);
-    };
-
     return {
         loading,
         updating,
@@ -141,4 +71,34 @@ export function useSummonerData(region: string, summonerName: string) {
         version,
         updateData
     };
+}
+
+async function fetchSummonerData(r: string, sName: string, forceUpdate: boolean) {
+    const nameParam = decodeURIComponent(sName);
+    let name = nameParam;
+    let tag = r;
+
+    if (nameParam.includes('-')) {
+        [name, tag] = nameParam.split('-');
+    }
+
+    const url = new URL(`/api/summoner`, window.location.origin);
+    url.searchParams.append('region', r);
+    url.searchParams.append('name', name);
+    url.searchParams.append('tag', tag);
+    if (forceUpdate) {
+        url.searchParams.append('force', 'true');
+    }
+
+    const res = await fetch(url.toString());
+
+    if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        if (errJson?.error === 'RIOT_FORBIDDEN') {
+            throw new Error('RIOT_FORBIDDEN');
+        }
+        throw new Error('Fetch failed');
+    }
+
+    return await res.json();
 }

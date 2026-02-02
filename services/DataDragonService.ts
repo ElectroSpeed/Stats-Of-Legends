@@ -89,16 +89,19 @@ export class DataDragonService {
         if (Array.isArray(spell.vars)) {
             for (const v of spell.vars) {
                 if (v.link === 'spelldamage' || v.key === 'a') {
-                    const coeff = Array.isArray(v.coeff) ? v.coeff[0] : v.coeff;
-                    apRatio = Number(coeff) || apRatio;
+                    apRatio = this.parseCoefficient(v) || apRatio;
                 }
                 if (v.link === 'attackdamage' || v.key === 'b') {
-                    const coeff = Array.isArray(v.coeff) ? v.coeff[0] : v.coeff;
-                    adRatio = Number(coeff) || adRatio;
+                    adRatio = this.parseCoefficient(v) || adRatio;
                 }
             }
         }
         return { apRatio, adRatio };
+    }
+
+    private static parseCoefficient(v: any): number {
+        const coeff = Array.isArray(v.coeff) ? v.coeff[0] : v.coeff;
+        return Number(coeff) || 0;
     }
 
     static async getChampions(patch: string = 'latest', locale: string = 'en_US') {

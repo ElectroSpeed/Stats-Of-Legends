@@ -93,7 +93,8 @@ function getFallback(response) {
     if (response.candidates) return JSON.stringify(response.candidates);
     if (response.output) return JSON.stringify(response.output);
     return JSON.stringify(response);
-  } catch (e) { 
+  } catch (e) {
+    // Return empty string on fallback failure
     return ''; 
   }
 }

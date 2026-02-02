@@ -115,7 +115,8 @@ export class MatchProcessor {
         let role = this.normalizeRole(p.teamPosition);
         if (!role || role === 'Invalid') return;
 
-        const championId = p.championName;
+        // const championId = p.championName;
+
         const timelineData = await this.extractTimelineData(matchId, region, p.participantId);
         const itemStats = this.extractItems(p, timelineData.cleanEvents, itemMap);
         const runeStats = this.extractRunes(p);
@@ -124,7 +125,7 @@ export class MatchProcessor {
 
         const shares = this.calculateShares(p, info, teamStats);
 
-        await this.upsertChampionStats(p, info, role, tier, patch, durationBucket, shares, itemStats, runeStats, spellStats, skillOrderStats);
+        await this.upsertChampionStats(p, info, { role, tier, patch, durationBucket }, { shares, items: itemStats, runes: runeStats, spells: spellStats, skillOrder: skillOrderStats });
         await this.upsertMatchupStats(p, info, role, tier, patch, durationBucket, shares);
         await this.upsertDuoStats(p, info, role, tier, patch);
     }
@@ -140,38 +141,55 @@ export class MatchProcessor {
         let skillOrderString = '';
         let cleanEvents: any[] = [];
         try {
-            let routing = 'europe';
-            if (region.startsWith('na') || region.startsWith('br') || region.startsWith('la')) routing = 'americas';
-            if (region.startsWith('kr') || region.startsWith('jp')) routing = 'asia';
-
+            const routing = this.getRoutingRegion(region);
             const timeline = await RiotService.getMatchTimeline(routing, matchId);
             
             // Skill Order
-            const skillEvents = timeline.info.frames.flatMap((f: any) => f.events)
-                .filter((e: any) => e.type === 'SKILL_LEVEL_UP' && e.participantId === participantId && e.skillSlot > 0 && e.skillSlot <= 4);
-            const skillMap: Record<number, string> = { 1: 'Q', 2: 'W', 3: 'E', 4: 'R' };
-            skillOrderString = skillEvents.map((e: any) => skillMap[e.skillSlot]).join('-');
+            skillOrderString = this.processSkillOrder(timeline, participantId);
 
             // Build Events
-            const allItemEvents = timeline.info.frames.flatMap((f: any) => f.events)
-                .filter((e: any) => e.participantId === participantId && ['ITEM_PURCHASED', 'ITEM_SOLD', 'ITEM_UNDO'].includes(e.type));
+            cleanEvents = this.processBuildEvents(timeline, participantId);
+        } catch (err) {
+            // Log error or ignore if timeline fetch fails
+            // console.warn('Failed to extract timeline', err);
+        }
+        return { skillOrderString, cleanEvents };
+    }
 
-            for (const ev of allItemEvents) {
-                if (ev.type === 'ITEM_PURCHASED' || ev.type === 'ITEM_SOLD') {
-                    cleanEvents.push(ev);
-                } else if (ev.type === 'ITEM_UNDO') {
-                    const lastIdx = cleanEvents.length - 1;
-                    if (lastIdx >= 0) {
-                        const lastEv = cleanEvents[lastIdx];
-                        if ((lastEv.type === 'ITEM_PURCHASED' && lastEv.itemId === ev.beforeId) || 
-                            (lastEv.type === 'ITEM_SOLD' && lastEv.itemId === ev.afterId)) {
-                            cleanEvents.pop();
-                        }
+    private static getRoutingRegion(region: string): string {
+        let routing = 'europe';
+        if (region.startsWith('na') || region.startsWith('br') || region.startsWith('la')) routing = 'americas';
+        if (region.startsWith('kr') || region.startsWith('jp')) routing = 'asia';
+        return routing;
+    }
+
+    private static processSkillOrder(timeline: any, participantId: number): string {
+        const skillEvents = timeline.info.frames.flatMap((f: any) => f.events)
+            .filter((e: any) => e.type === 'SKILL_LEVEL_UP' && e.participantId === participantId && e.skillSlot > 0 && e.skillSlot <= 4);
+        const skillMap: Record<number, string> = { 1: 'Q', 2: 'W', 3: 'E', 4: 'R' };
+        return skillEvents.map((e: any) => skillMap[e.skillSlot]).join('-');
+    }
+
+    private static processBuildEvents(timeline: any, participantId: number): any[] {
+        const cleanEvents: any[] = [];
+        const allItemEvents = timeline.info.frames.flatMap((f: any) => f.events)
+            .filter((e: any) => e.participantId === participantId && ['ITEM_PURCHASED', 'ITEM_SOLD', 'ITEM_UNDO'].includes(e.type));
+
+        for (const ev of allItemEvents) {
+            if (ev.type === 'ITEM_PURCHASED' || ev.type === 'ITEM_SOLD') {
+                cleanEvents.push(ev);
+            } else if (ev.type === 'ITEM_UNDO') {
+                const lastIdx = cleanEvents.length - 1;
+                if (lastIdx >= 0) {
+                    const lastEv = cleanEvents[lastIdx];
+                    if ((lastEv.type === 'ITEM_PURCHASED' && lastEv.itemId === ev.beforeId) ||
+                        (lastEv.type === 'ITEM_SOLD' && lastEv.itemId === ev.afterId)) {
+                        cleanEvents.pop();
                     }
                 }
             }
-        } catch (err) { /* Ignore */ }
-        return { skillOrderString, cleanEvents };
+        }
+        return cleanEvents;
     }
 
     private static extractItems(p: any, cleanEvents: any[], itemMap: any) {
@@ -293,7 +311,10 @@ export class MatchProcessor {
         };
     }
 
-    private static async upsertChampionStats(p: any, info: any, role: string, tier: string, patch: string, durationBucket: string, shares: any, items: any, runes: any, spells: any, skillOrder: any) {
+    private static async upsertChampionStats(p: any, info: any, context: any, stats: any) {
+         const { role, tier, patch, durationBucket } = context;
+         const { shares, items, runes, spells, skillOrder } = stats;
+
          const existingStat = await prisma.championStat.findUnique({
             where: {
                 championId_role_tier_patch_durationBucket: {

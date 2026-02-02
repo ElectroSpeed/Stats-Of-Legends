@@ -106,7 +106,7 @@ export class ScoringService {
         let finalScore = this.transformToScore(rawScore);
 
         // Bonus for Winning
-        if (p.win) finalScore += 10.0;
+        if (p.win) finalScore += 10;
 
         // Matchup Difficulty Adjustment
         if (matchupWinRate !== undefined) {

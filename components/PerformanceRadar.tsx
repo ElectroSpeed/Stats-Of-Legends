@@ -106,7 +106,9 @@ const CentralScoreOverlay = ({ averageScore }: { averageScore: number }) => {
 
 const ConsistencyBadge = ({ badge }: { badge?: string }) => {
     if (!badge) return null;
-    const colorClass = badge === 'Rock Solid' ? 'text-blue-400' : badge === 'Coinflip' ? 'text-red-400' : 'text-gray-400';
+    let colorClass = 'text-gray-400';
+    if (badge === 'Rock Solid') colorClass = 'text-blue-400';
+    else if (badge === 'Coinflip') colorClass = 'text-red-400';
     
     return (
         <div className="absolute bottom-2 right-2 flex flex-col items-end">
