@@ -113,83 +113,93 @@ export class SummonerService {
 
             for (const entry of leagueEntries) {
                 if (entry.queueType === QUEUE_SOLO || entry.queueType === QUEUE_FLEX) {
-                    const rankValue = LeaderboardService.calculateRankValue(entry.tier, entry.rank, entry.leaguePoints);
-
-                    // Calculate Average Legend Score
-                    const matches = await prisma.summonerMatch.findMany({
-                        where: { summonerPuuid: puuid, role: { not: 'UNKNOWN' } },
-                        select: { legendScore: true },
-                        take: 20,
-                        orderBy: { match: { gameCreation: 'desc' } }
-                    });
-
-                    let legendScore = 0;
-                    if (matches.length > 0) {
-                        const totalScore = matches.reduce((sum, m) => sum + (m.legendScore || 0), 0);
-                        legendScore = totalScore / matches.length;
-                    }
-
-                    // 1. Upsert Current Rank with Leaderboard Data
-                    await prisma.summonerRank.upsert({
-                        where: {
-                            summonerPuuid_queueType: {
-                                summonerPuuid: puuid,
-                                queueType: entry.queueType,
-                            },
-                        },
-                        update: {
-                            tier: entry.tier,
-                            rank: entry.rank,
-                            leaguePoints: entry.leaguePoints,
-                            wins: entry.wins,
-                            losses: entry.losses,
-                            rankValue: rankValue,
-                            legendScore: legendScore,
-                            updatedAt: new Date(),
-                        },
-                        create: {
-                            summonerPuuid: puuid,
-                            queueType: entry.queueType,
-                            tier: entry.tier,
-                            rank: entry.rank,
-                            leaguePoints: entry.leaguePoints,
-                            wins: entry.wins,
-                            losses: entry.losses,
-                            rankValue: rankValue,
-                            legendScore: legendScore,
-                        },
-                    });
-
-                    // 2. Create Snapshot (for history) ONLY if changed
-                    try {
-                        const lastSnapshot = await prisma.leagueSnapshot.findFirst({
-                            where: { summonerPuuid: puuid, queueType: entry.queueType },
-                            orderBy: { timestamp: 'desc' }
-                        });
-
-                        if (!lastSnapshot ||
-                            lastSnapshot.tier !== entry.tier ||
-                            lastSnapshot.rank !== entry.rank ||
-                            lastSnapshot.leaguePoints !== entry.leaguePoints) {
-
-                            await prisma.leagueSnapshot.create({
-                                data: {
-                                    summonerPuuid: puuid,
-                                    queueType: entry.queueType,
-                                    tier: entry.tier,
-                                    rank: entry.rank,
-                                    leaguePoints: entry.leaguePoints,
-                                    wins: entry.wins,
-                                    losses: entry.losses,
-                                    timestamp: new Date(),
-                                }
-                            });
-                        }
-                    } catch (snapErr) {
-                        console.error('Failed to create snapshot:', snapErr);
-                    }
+                    await this.processRankEntry(puuid, entry);
                 }
             }
+        }
+    }
+
+    private static async processRankEntry(puuid: string, entry: any) {
+        const rankValue = LeaderboardService.calculateRankValue(entry.tier, entry.rank, entry.leaguePoints);
+        const legendScore = await this.calculateLegendScore(puuid);
+
+        // 1. Upsert Current Rank
+        await prisma.summonerRank.upsert({
+            where: {
+                summonerPuuid_queueType: {
+                    summonerPuuid: puuid,
+                    queueType: entry.queueType,
+                },
+            },
+            update: {
+                tier: entry.tier,
+                rank: entry.rank,
+                leaguePoints: entry.leaguePoints,
+                wins: entry.wins,
+                losses: entry.losses,
+                rankValue: rankValue,
+                legendScore: legendScore,
+                updatedAt: new Date(),
+            },
+            create: {
+                summonerPuuid: puuid,
+                queueType: entry.queueType,
+                tier: entry.tier,
+                rank: entry.rank,
+                leaguePoints: entry.leaguePoints,
+                wins: entry.wins,
+                losses: entry.losses,
+                rankValue: rankValue,
+                legendScore: legendScore,
+            },
+        });
+
+        // 2. Create Snapshot
+        await this.createSnapshotIfChanged(puuid, entry);
+    }
+
+    private static async calculateLegendScore(puuid: string): Promise<number> {
+        const matches = await prisma.summonerMatch.findMany({
+            where: { summonerPuuid: puuid, role: { not: 'UNKNOWN' } },
+            select: { legendScore: true },
+            take: 20,
+            orderBy: { match: { gameCreation: 'desc' } }
+        });
+
+        if (matches.length > 0) {
+            const totalScore = matches.reduce((sum, m) => sum + (m.legendScore || 0), 0);
+            return totalScore / matches.length;
+        }
+        return 0;
+    }
+
+    private static async createSnapshotIfChanged(puuid: string, entry: any) {
+        try {
+            const lastSnapshot = await prisma.leagueSnapshot.findFirst({
+                where: { summonerPuuid: puuid, queueType: entry.queueType },
+                orderBy: { timestamp: 'desc' }
+            });
+
+            if (!lastSnapshot ||
+                lastSnapshot.tier !== entry.tier ||
+                lastSnapshot.rank !== entry.rank ||
+                lastSnapshot.leaguePoints !== entry.leaguePoints) {
+
+                await prisma.leagueSnapshot.create({
+                    data: {
+                        summonerPuuid: puuid,
+                        queueType: entry.queueType,
+                        tier: entry.tier,
+                        rank: entry.rank,
+                        leaguePoints: entry.leaguePoints,
+                        wins: entry.wins,
+                        losses: entry.losses,
+                        timestamp: new Date(),
+                    }
+                });
+            }
+        } catch (snapErr) {
+            console.error('Failed to create snapshot:', snapErr);
         }
     }
 }

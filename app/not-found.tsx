@@ -1,10 +1,11 @@
 
 "use client";
 
+import React, { Suspense } from 'react';
 import { SafeLink } from "@/components/ui/SafeLink";
 import { AlertTriangle, Home } from "lucide-react";
 
-export default function NotFound() {
+function NotFoundContent() {
     return (
         <div className="flex flex-col items-center justify-center h-[calc(100vh-80px)] text-center px-4 animate-fadeIn relative overflow-hidden">
             <div className="absolute inset-0 bg-hex-pattern opacity-5 pointer-events-none"></div>
@@ -29,5 +30,13 @@ export default function NotFound() {
                 <Home className="w-4 h-4" /> Retour à l'accueil
             </SafeLink>
         </div>
+    );
+}
+
+export default function NotFound() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#0a0a0c]" />}>
+            <NotFoundContent />
+        </Suspense>
     );
 }

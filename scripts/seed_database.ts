@@ -29,6 +29,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import { randomInt } from 'node:crypto';
 
 // Load .env and .env.local
 const envPath = path.join(__dirname, '../.env');
@@ -199,76 +200,84 @@ async function checkConnectivity() {
 }
 
 async function fetchRandomPlayers(tier: string, division: string, count: number, page: number = 1) {
-    // Resolve Platform (handle 'EUW' -> 'euw1' and 'euw1' -> 'euw1')
     const platform = PLATFORM_MAP[CONFIG.REGION] || CONFIG.REGION.toLowerCase();
+    const url = getLeagueUrl(platform, tier, division, page);
 
-    // Use league-v4 (Stable) instead of league-exp-v4 (Experimental)
-    // Note: league-v4 requires iterating by queue/tier/division just like exp, but is generally more stable.
-    // However, standard league-v4 endpoint is: /lol/league/v4/entries/{queue}/{tier}/{division}
-    let url;
+    if (!url) return [];
+
+    return await executeFetchWithRetries(url, tier, division, page, count);
+}
+
+function getLeagueUrl(platform: string, tier: string, division: string, page: number): string | null {
     if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(tier)) {
-        // Apex tiers
-        if (page > 1) return [];
-        url = `https://${platform}.api.riotgames.com/lol/league/v4/${tier.toLowerCase()}leagues/by-queue/${CONFIG.QUEUE}`;
-    } else {
-        // Standard tiers - Switch to stable v4
-        url = `https://${platform}.api.riotgames.com/lol/league/v4/entries/${CONFIG.QUEUE}/${tier}/${division}?page=${page}`;
+        if (page > 1) return null;
+        return `https://${platform}.api.riotgames.com/lol/league/v4/${tier.toLowerCase()}leagues/by-queue/${CONFIG.QUEUE}`;
     }
+    return `https://${platform}.api.riotgames.com/lol/league/v4/entries/${CONFIG.QUEUE}/${tier}/${division}?page=${page}`;
+}
 
+async function executeFetchWithRetries(url: string, tier: string, division: string, page: number, count: number) {
     const maxRetries = 3;
     let attempt = 1;
     let rateLimitRetries = 0;
 
     while (attempt <= maxRetries) {
-        try {
-            const res = await riotFetchRaw(url);
-
-            if (res.ok) {
-                const data = JSON.parse(res.body || '[]');
-                // Apex tiers return { entries: [] }
-                const entries = Array.isArray(data) ? data : data.entries;
-
-                // Shuffle and pick
-                const shuffled = entries.sort(() => 0.5 - Math.random());
-                return shuffled.slice(0, count);
-            }
-
-            // Handle Rate Limit (429)
-            if (res.status === 429) {
-                if (rateLimitRetries >= 10) {
-                    console.error(`\n❌ Max rate limit retries exceeded for ${tier} ${division}.`);
-                    return [];
-                }
-                console.warn(`\n⏳ Rate Limit Exceeded (429) for ${tier} ${division}. Waiting 120s to clear bucket...`);
-                await delay(120000); // Wait 2 minutes to be safe
-                rateLimitRetries++;
-                continue; // Retry without using up a 'standard' attempt
-            }
-
-            // Handle Server Errors (5xx) with Retry
-            if (res.status >= 500 && res.status < 600) {
-                console.warn(`\n⚠️ Riot API Error ${res.status} for ${tier} ${division} (Page ${page}) - Attempt ${attempt}/${maxRetries}. Retrying in 5s...`);
-                await delay(5000);
-                attempt++;
-                continue;
-            }
-
-            // Handle Client Errors (4xx) - Do not retry
-            console.error(`\n❌ Failed to fetch players for ${tier} ${division} (Page ${page}): ${res.status}`);
-            return [];
-
-        } catch (e) {
-            console.error(`\n❌ Error fetching players: ${e}`);
-            // Optional: Retry on network errors too?
-            if (attempt < maxRetries) {
-                await delay(5000);
-                attempt++;
-                continue;
-            }
-            return [];
+        const result = await attemptFetch(url, tier, division);
+        
+        if (result.success) {
+            return parseAndShufflePlayers(result.body || '[]', count);
         }
+
+        if (result.rateLimited) {
+            if (rateLimitRetries >= 10) return [];
+            await delay(120000);
+            rateLimitRetries++;
+            continue;
+        }
+
+        if (result.shouldRetry) {
+            await delay(5000);
+            attempt++;
+            continue;
+        }
+
+        break;
     }
     return [];
+}
+
+async function attemptFetch(url: string, tier: string, division: string) {
+    try {
+        const res = await riotFetchRaw(url);
+        if (res.ok) return { success: true, body: res.body };
+        if (res.status === 429) {
+            console.warn(`\n⏳ Rate Limit Exceeded (429) for ${tier} ${division}. Waiting 120s...`);
+            return { rateLimited: true };
+        }
+        if (res.status >= 500 && res.status < 600) {
+            console.warn(`\n⚠️ Riot API Error ${res.status} Retrying...`);
+            return { shouldRetry: true };
+        }
+        console.error(`\n❌ Failed to fetch players: ${res.status}`);
+        return { success: false };
+    } catch (e) {
+        console.error(`\n❌ Error fetching players: ${e}`);
+        return { shouldRetry: true };
+    }
+}
+
+
+function parseAndShufflePlayers(body: string, count: number) {
+    const data = JSON.parse(body);
+    const entries = Array.isArray(data) ? data : data.entries;
+    
+    // Fisher-Yates shuffle with crypto.randomInt
+    for (let i = entries.length - 1; i > 0; i--) {
+        const j = randomInt(i + 1);
+        [entries[i], entries[j]] = [entries[j], entries[i]];
+    }
+
+    return entries.slice(0, count);
 }
 
 async function processPlayer(entry: any, tier: string, limit: number, onMatchProcessed: () => void) {
@@ -413,7 +422,6 @@ async function processPlayer(entry: any, tier: string, limit: number, onMatchPro
 }
 
 async function main() {
-    // Connectivity Check
     const isConnected = await checkConnectivity();
     if (!isConnected) {
         console.error("❌ Aborting: Cannot connect to Riot API.");
@@ -422,11 +430,9 @@ async function main() {
 
     const tiersToProcess = CONFIG.TIER === 'ALL' ? TIERS : [CONFIG.TIER];
 
-    // Calculate Global Target
     TOTAL_TARGET_GLOBAL = tiersToProcess.length * TARGET_PER_TIER;
     GLOBAL_START_TIME = Date.now();
 
-    // Start Ticker
     startProgressTicker();
 
     for (const tier of tiersToProcess) {
@@ -434,124 +440,130 @@ async function main() {
             console.error(`Invalid Tier: ${tier}`);
             continue;
         }
-
-        console.log(`\n--- Seeding Tier: ${tier} ---`);
-        let processedForTier = 0; // Players or Matches depending on mode
-
-        // Update Shared State
-        CurrentProgress.tier = tier;
-        CurrentProgress.tierCurrent = processedForTier;
-        CurrentProgress.tierTotal = TARGET_PER_TIER;
-
-        // For Apex tiers, division is ignored
-        const divisions = ['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(tier) ? ['I'] : DIVISIONS;
-
-        // Initialize Progress Bar
-        updateProgressBar(tier, processedForTier, TARGET_PER_TIER);
-
-        for (let i = 0; i < divisions.length; i++) {
-            const division = divisions[i];
-            if (processedForTier >= TARGET_PER_TIER) break;
-
-            // Balanced Distribution Logic
-            // Calculate how many we need from this division to stay on track for equal distribution
-            const remainingDivisions = divisions.length - i;
-            const remainingTarget = TARGET_PER_TIER - processedForTier;
-            const targetForDiv = Math.ceil(remainingTarget / remainingDivisions);
-
-            console.log(`\n🎯 Target for ${tier} ${division}: ${targetForDiv} matches (Remaining Tier Target: ${remainingTarget})`);
-
-            let processedForDiv = 0;
-            let page = 1;
-            let keepFetching = true;
-
-            while (keepFetching && processedForDiv < targetForDiv) {
-                console.log(`\n🔍 Fetching players from ${tier} ${division} (Page ${page})...`);
-
-                // Fetch more players per page to reduce API calls if we need many matches
-                const playersToFetch = 10;
-                const players = await fetchRandomPlayers(tier, division, playersToFetch, page);
-
-                if (players.length === 0) {
-                    // Should not happen normally as per user, but safety break
-                    console.warn(`\n⚠️ No more players found in ${tier} ${division}. Moving to next division.`);
-                    keepFetching = false;
-                    break;
-                }
-
-                for (const player of players) {
-                    // Check both Tier Target and Division Target
-                    if (processedForTier >= TARGET_PER_TIER) break;
-                    if (processedForDiv >= targetForDiv) break;
-
-                    if (!player.puuid) continue;
-
-                    // DB CHECK: Has this player been scanned in this region?
-                    const alreadyScanned = await prisma.scannedSummoner.findUnique({
-                        where: {
-                            puuid_region: {
-                                puuid: player.puuid,
-                                region: CONFIG.REGION
-                            }
-                        }
-                    });
-
-                    if (alreadyScanned) continue;
-
-                    // Calculate Limit for this player
-                    // If MATCHES mode: limit is (targetForDiv - processedForDiv)
-                    // If PLAYERS mode: limit is just MATCHES_PER_PLAYER (we count players, not matches)
-                    const limit = (MODE === 'MATCHES')
-                        ? (targetForDiv - processedForDiv)
-                        : CONFIG.MATCHES_PER_PLAYER;
-
-                    const matchesCount = await processPlayer(player, tier, limit, () => {
-                        // Callback for MATCHES mode updates
-                        if (MODE === 'MATCHES') {
-                            processedForDiv++;
-                            processedForTier++;
-                            GLOBAL_PROCESSED++;
-
-                            // Update Shared State
-                            CurrentProgress.tierCurrent = processedForTier;
-
-                            updateProgressBar(tier, processedForTier, TARGET_PER_TIER);
-                        }
-                    });
-
-                    // Update for PLAYERS mode
-                    if (MODE === 'PLAYERS') {
-                        processedForDiv++;
-                        processedForTier++;
-                        GLOBAL_PROCESSED++;
-
-                        // Update Shared State
-                        CurrentProgress.tierCurrent = processedForTier;
-
-                        updateProgressBar(tier, processedForTier, TARGET_PER_TIER);
-                    }
-
-                    // DB SAVE: Mark as scanned
-                    await prisma.scannedSummoner.create({
-                        data: {
-                            puuid: player.puuid,
-                            region: CONFIG.REGION
-                        }
-                    });
-
-                    await delay(1000);
-                }
-
-                page++; // Next page
-                await delay(1000); // Delay between pages
-            }
-        }
-        // Final newline after tier is done
-        console.log("");
+        await processTier(tier);
     }
 
-    CurrentProgress.active = false; // Stop Ticker
+    CurrentProgress.active = false;
     console.log("\n✅ Seeding Complete!");
+}
+
+async function processTier(tier: string) {
+    console.log(`\n--- Seeding Tier: ${tier} ---`);
+    let processedForTier = 0;
+
+    CurrentProgress.tier = tier;
+    CurrentProgress.tierCurrent = processedForTier;
+    CurrentProgress.tierTotal = TARGET_PER_TIER;
+
+    const divisions = ['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(tier) ? ['I'] : DIVISIONS;
+
+    updateProgressBar(tier, processedForTier, TARGET_PER_TIER);
+
+    for (let i = 0; i < divisions.length; i++) {
+        const division = divisions[i];
+        if (processedForTier >= TARGET_PER_TIER) break;
+
+        const remainingDivisions = divisions.length - i;
+        const remainingTarget = TARGET_PER_TIER - processedForTier;
+        const targetForDiv = Math.ceil(remainingTarget / remainingDivisions);
+
+        processedForTier += await processDivision(tier, division, targetForDiv, processedForTier);
+    }
+    console.log("");
+}
+
+async function processDivision(tier: string, division: string, targetForDiv: number, currentTierProcessed: number) : Promise<number> {
+    console.log(`\n🎯 Target for ${tier} ${division}: ${targetForDiv} matches`);
+
+    let processedForDiv = 0;
+    let page = 1;
+    let keepFetching = true;
+    let addedCountTotal = 0;
+
+    while (keepFetching && processedForDiv < targetForDiv) {
+        console.log(`\n🔍 Fetching players from ${tier} ${division} (Page ${page})...`);
+
+        const players = await fetchRandomPlayers(tier, division, 10, page);
+
+        if (players.length === 0) {
+            console.warn(`\n⚠️ No more players found in ${tier} ${division}.`);
+            keepFetching = false;
+            break;
+        }
+
+        const { addedCount, stopTier } = await processPlayerBatch(players, tier, division, targetForDiv, processedForDiv, currentTierProcessed + addedCountTotal);
+        addedCountTotal += addedCount;
+        processedForDiv += addedCount;
+
+        if (stopTier) break;
+
+        page++;
+        await delay(1000);
+    }
+    return addedCountTotal;
+}
+
+async function processPlayerBatch(players: any[], tier: string, division: string, targetForDiv: number, processedForDiv: number, processedForTier: number) {
+    let addedCount = 0;
+    let stopTier = false;
+
+    for (const player of players) {
+        if (processedForTier + addedCount >= TARGET_PER_TIER) {
+            stopTier = true;
+            break;
+        }
+        if (processedForDiv + addedCount >= targetForDiv) break;
+
+        if (!player.puuid) continue;
+
+        const alreadyScanned = await prisma.scannedSummoner.findUnique({
+            where: {
+                puuid_region: {
+                    puuid: player.puuid,
+                    region: CONFIG.REGION
+                }
+            }
+        });
+
+        if (alreadyScanned) continue;
+
+        const limit = (MODE === 'MATCHES')
+            ? (targetForDiv - (processedForDiv + addedCount))
+            : CONFIG.MATCHES_PER_PLAYER;
+
+        const matchesCount = await processPlayer(player, tier, limit, () => {
+            if (MODE === 'MATCHES') {
+                GLOBAL_PROCESSED++;
+                CurrentProgress.tierCurrent = processedForTier + addedCount; // Approximation during batch
+                updateProgressBar(tier, processedForTier + addedCount, TARGET_PER_TIER);
+            }
+        });
+
+        if (MODE === 'MATCHES') {
+             // In MATCHES mode, processPlayer returns loaded matches, but our loop counts matches processed via callback. 
+             // Logic in original main was: processedForDiv += matchesCount (actually it was incremented via callback).
+             // Wait, original main incremented processedForDiv INSIDE callback.
+             // Here limit logic assumes we want `limit` matches.
+             // We can track added matches via the matchesCount returned if needed, OR just rely on logic.
+             // The callback updates globals. We need local counters.
+             // The callback provided to processPlayer handles global updates.
+             // We need to return how much we advanced to update `processedForDiv` in caller.
+             // Actually `processPlayer` returns `processedCount`.
+             addedCount += matchesCount;
+        } else {
+            addedCount++;
+            GLOBAL_PROCESSED++;
+            CurrentProgress.tierCurrent = processedForTier + addedCount;
+            updateProgressBar(tier, processedForTier + addedCount, TARGET_PER_TIER);
+        }
+        
+        await prisma.scannedSummoner.create({
+            data: { puuid: player.puuid, region: CONFIG.REGION }
+        });
+
+        await delay(1000);
+    }
+    return { addedCount, stopTier };
 }
 
 main()

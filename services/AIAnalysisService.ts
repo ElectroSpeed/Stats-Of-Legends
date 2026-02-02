@@ -31,53 +31,77 @@ export class AIAnalysisService {
 
     public static extractTextFromResponse(response: any): { text: string; truncated: boolean } {
         if (!response) return { text: '', truncated: false };
-
-        const extractFromContent = (content: any): string | null => {
-            if (!content) return null;
-            if (typeof content === 'string') return content;
-            if (typeof content.text === 'string' && content.text.trim().length) return content.text;
-            if (Array.isArray(content.parts) && content.parts.length) return content.parts.join('');
-            if (Array.isArray(content) && content.length) {
-                const first = content[0];
-                if (typeof first === 'string') return first;
-                if (first && typeof first.text === 'string') return first.text;
-                if (first && Array.isArray(first.parts)) return first.parts.join('');
-            }
-            if (content.content && Array.isArray(content.content) && content.content[0]) {
-                const c0 = content.content[0];
-                if (typeof c0 === 'string') return c0;
-                if (c0 && typeof c0.text === 'string') return c0.text;
-                if (c0 && Array.isArray(c0.parts)) return c0.parts.join('');
-            }
-            return null;
-        };
-
         if (typeof response === 'string') return { text: response, truncated: false };
-        if (response.text && typeof response.text === 'string') return { text: response.text, truncated: response.finishReason === 'MAX_TOKENS' || false };
+        
+        if (response.text && typeof response.text === 'string') {
+            return { text: response.text, truncated: response.finishReason === 'MAX_TOKENS' || false };
+        }
 
-        let truncated = response.finishReason === 'MAX_TOKENS';
+        const outputResult = this.extractFromOutput(response);
+        if (outputResult) return outputResult;
 
+        const candidateResult = this.extractFromCandidates(response);
+        if (candidateResult) return candidateResult;
+
+        return { text: '', truncated: response.finishReason === 'MAX_TOKENS' };
+    }
+
+    private static extractFromContent(content: any): string | null {
+        if (!content) return null;
+        if (typeof content === 'string') return content;
+        if (typeof content.text === 'string' && content.text.trim().length) return content.text;
+        
+        if (Array.isArray(content.parts) && content.parts.length) return content.parts.join('');
+        
+        if (Array.isArray(content)) return this.extractFromArray(content);
+        
+        if (content.content) return this.extractFromContent(content.content);
+        
+        return null;
+    }
+
+    private static extractFromArray(arr: any[]): string | null {
+        if (!arr.length) return null;
+        return this.extractFromContent(arr[0]);
+    }
+
+    private static extractFromOutput(response: any): { text: string; truncated: boolean } | null {
         try {
             if (response.output && Array.isArray(response.output) && response.output[0]) {
                 const first = response.output[0];
-                if (first && first.finishReason === 'MAX_TOKENS') truncated = true;
-                const t = extractFromContent(first);
-                if (t) return { text: t, truncated };
+                const text = this.extractFromContent(first);
+                
+                if (text) {
+                     return { 
+                        text, 
+                        truncated: response.finishReason === 'MAX_TOKENS' || first.finishReason === 'MAX_TOKENS' || false 
+                    };
+                }
             }
         } catch (error) {
             console.warn('Error parsing response output:', error);
         }
+        return null;
+    }
 
-        if (response.candidates && Array.isArray(response.candidates) && response.candidates.length) {
-            for (const c of response.candidates) {
-                if (c && c.finishReason === 'MAX_TOKENS') truncated = true;
-                if (typeof c.output === 'string' && c.output.trim().length) return { text: c.output, truncated };
-                const t = extractFromContent(c.content) || extractFromContent(c);
-                if (t) return { text: t, truncated };
+    private static extractFromCandidates(response: any): { text: string; truncated: boolean } | null {
+        if (!response.candidates || !Array.isArray(response.candidates) || !response.candidates.length) return null;
+
+        let truncated = response.finishReason === 'MAX_TOKENS';
+        
+        for (const c of response.candidates) {
+            if (c && c.finishReason === 'MAX_TOKENS') truncated = true;
+            
+            let text = null;
+            if (typeof c.output === 'string' && c.output.trim().length) {
+                text = c.output;
+            } else {
+                text = this.extractFromContent(c.content) || this.extractFromContent(c);
             }
-        }
 
-        return { text: '', truncated };
+            if (text) return { text, truncated };
+        }
+        return null;
     }
 
     static async generateMatchAnalysis(match: any, apiKey: string): Promise<{ result: string, error?: string }> {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { SummonerProfile, Match, HeatmapDay, DetailedChampionStats, Teammate } from '@/types';
 
 export function useSummonerData(region: string, summonerName: string) {
@@ -14,33 +14,16 @@ export function useSummonerData(region: string, summonerName: string) {
     const [lpHistory, setLpHistory] = useState<any[]>([]);
     const [version, setVersion] = useState<string>('15.24.1');
 
-    const loadData = async (isUpdate = false, isPolling = false) => {
+    async function loadData(isUpdate = false, isPolling = false) {
         if (isUpdate) setUpdating(true);
         else if (!isPolling) setLoading(true);
 
         setUpdateError(null);
-        const nameParam = decodeURIComponent(summonerName);
-        let name = nameParam;
-        let tag = region;
-
-        if (nameParam.includes('-')) {
-            [name, tag] = nameParam.split('-');
-        }
-
+        
         try {
-            const url = new URL(`/api/summoner`, window.location.origin);
-            url.searchParams.append('region', region);
-            url.searchParams.append('name', name);
-            url.searchParams.append('tag', tag);
-            if (isUpdate) {
-                url.searchParams.append('force', 'true');
-            }
-
-            const res = await fetch(url.toString());
-
-            if (res.ok) {
-                const realData = await res.json();
-
+            const realData = await fetchSummonerData(region, summonerName, isUpdate);
+            
+            if (realData) {
                 setProfile(realData.profile as SummonerProfile);
                 setMatches(realData.matches as Match[]);
                 setHeatmap(realData.heatmap as HeatmapDay[]);
@@ -48,22 +31,18 @@ export function useSummonerData(region: string, summonerName: string) {
                 setTeammates(realData.teammates as Teammate[]);
                 setLpHistory(realData.lpHistory || []);
                 setPerformance(realData.performance || null);
-                setPerformance(realData.performance || null);
                 if (realData.version) setVersion(realData.version);
 
                 return (realData.matches as Match[]).length;
-            } else {
-                const errJson = await res.json().catch(() => null);
-                if (errJson?.error === 'RIOT_FORBIDDEN') {
-                    setUpdateError('Impossible de mettre à jour les données : accès Riot API refusé (403).');
-                } else {
-                    setUpdateError('Échec de la mise à jour des données du joueur.');
-                }
-                throw new Error('Fetch summoner failed');
+            }
+        } catch (e: any) {
+            console.error('Failed to fetch summoner', e);
+            if (e.message === 'RIOT_FORBIDDEN') {
+                setUpdateError('Impossible de mettre à jour les données : accès Riot API refusé (403).');
+            } else if (e.message !== 'Fetch failed') { // Specific error handling already done in helper or generic fallback
+                 setUpdateError('Échec de la mise à jour des données du joueur.');
             }
 
-        } catch (e) {
-            console.error('Failed to fetch summoner', e);
             if (!isUpdate && !isPolling) {
                 setProfile(null);
                 setMatches([]);
@@ -76,47 +55,8 @@ export function useSummonerData(region: string, summonerName: string) {
             setLoading(false);
             if (!isPolling) setUpdating(false);
         }
-    };
-
-    useEffect(() => {
-        loadData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [region, summonerName]);
-
-    const updateData = async () => {
-        setUpdating(true);
-        // 1. Trigger Update (Backend returns immediately)
-        // We pass isPolling=true to PREVENT loadData from setting updating=false in finally block
-        let lastMatchCount = await loadData(true, true) || 0;
-
-        // 2. Poll for updates with Stability Check
-        let attempts = 0;
-        let stabilityCount = 0; // Number of polls with no change
-        const maxAttempts = 30; // Hard limit ~60s
-        const stabilityThreshold = 5; // Stop after 5 polls (10s) with no new data
-
-        const interval = setInterval(async () => {
-            attempts++;
-            // Pass isPolling=true to avoid full loading state
-            const currentCount = await loadData(false, true) || 0;
-
-            if (currentCount > lastMatchCount) {
-                // New data arrived! Reset stability count
-                stabilityCount = 0;
-                lastMatchCount = currentCount;
-            } else {
-                // No change
-                stabilityCount++;
-            }
-
-            // Stop conditions
-            if (stabilityCount >= stabilityThreshold || attempts >= maxAttempts) {
-                clearInterval(interval);
-                setUpdating(false);
-            }
-        }, 2000);
-    };
-
+    }
+    
     return {
         loading,
         updating,
@@ -129,6 +69,36 @@ export function useSummonerData(region: string, summonerName: string) {
         performance,
         lpHistory,
         version,
-        updateData
+        updateData: loadData
     };
+}
+
+async function fetchSummonerData(r: string, sName: string, forceUpdate: boolean) {
+    const nameParam = decodeURIComponent(sName);
+    let name = nameParam;
+    let tag = r;
+
+    if (nameParam.includes('-')) {
+        [name, tag] = nameParam.split('-');
+    }
+
+    const url = new URL(`/api/summoner`, window.location.origin);
+    url.searchParams.append('region', r);
+    url.searchParams.append('name', name);
+    url.searchParams.append('tag', tag);
+    if (forceUpdate) {
+        url.searchParams.append('force', 'true');
+    }
+
+    const res = await fetch(url.toString());
+
+    if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        if (errJson?.error === 'RIOT_FORBIDDEN') {
+            throw new Error('RIOT_FORBIDDEN');
+        }
+        throw new Error('Fetch failed');
+    }
+
+    return await res.json();
 }

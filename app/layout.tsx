@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import React from 'react';
 import { Inter, Cinzel } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "../components/Navbar";
@@ -35,7 +36,9 @@ export default function RootLayout({
       <body suppressHydrationWarning={true} className={`${inter.variable} ${cinzel.variable} antialiased bg-[${MAIN_BG_COLOR}] text-[#A09B8C] selection:bg-lol-red selection:text-white min-h-screen flex flex-col font-sans`}>
         <Providers>
           <LanguageProvider>
-            <Navbar />
+            <React.Suspense fallback={<div className="h-20 w-full bg-[#050505]/80 backdrop-blur-xl border-b border-white/5" />}>
+              <Navbar />
+            </React.Suspense>
             <main className="flex-grow">
               {children}
             </main>

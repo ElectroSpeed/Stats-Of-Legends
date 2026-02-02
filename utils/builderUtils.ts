@@ -1,6 +1,8 @@
 import { Champion, Item, Stats } from '../types';
 import { getChampionIconUrl, getSpellIconUrl, getItemIconUrl } from './ddragon';
 
+const REMOVED_IDS = new Set([8008, 8124, 9101, 9103, 8304, 8316, 8126]);
+
 export const transformChampionData = (champJson: any): Champion[] => {
     const patch = champJson.patch || 'latest';
     return (champJson.data || []).map((c: any) => ({
@@ -92,24 +94,12 @@ export const calculateStats = (currentChampion: Champion | null, championLevel: 
     };
 
     const bonusAsFromLevel = (growth?.attackSpeed || 0) * lvlMod;
-
     let itemBonusAs = 0;
+
     selectedItems.forEach(item => {
         if (item && item.stats) {
-            if (item.stats.ad) computedStats.ad += item.stats.ad;
-            if (item.stats.ap) computedStats.ap += item.stats.ap;
-            if (item.stats.hp) computedStats.hp += item.stats.hp;
-            if (item.stats.hpRegen) computedStats.hpRegen += item.stats.hpRegen;
-            if (item.stats.mp) computedStats.mp += item.stats.mp;
-            if (item.stats.mpRegen) computedStats.mpRegen += item.stats.mpRegen;
-            if (item.stats.armor) computedStats.armor += item.stats.armor;
-            if (item.stats.mr) computedStats.mr += item.stats.mr;
-            if (item.stats.haste) computedStats.haste += item.stats.haste;
-            if (item.stats.crit) computedStats.crit += item.stats.crit;
-            if (item.stats.moveSpeed) computedStats.moveSpeed += item.stats.moveSpeed;
+            accumulateItemStats(computedStats, item.stats);
             if (item.stats.attackSpeed) itemBonusAs += item.stats.attackSpeed;
-            if (item.stats.magicPen) computedStats.magicPen = (computedStats.magicPen || 0) + item.stats.magicPen;
-            if (item.stats.lethality) computedStats.lethality = (computedStats.lethality || 0) + item.stats.lethality;
         }
     });
 
@@ -236,12 +226,27 @@ export const calculateNewSecondaryPerks = (runeId: number, currentPerks: (number
 };
 
 export const cleanRuneData = (data: any[]) => {
-    const REMOVED_IDS = [8134, 8124, 8008];
     return data.map((style: any) => ({
         ...style,
         slots: style.slots.map((slot: any) => ({
             ...slot,
-            runes: slot.runes.filter((rune: any) => !REMOVED_IDS.includes(rune.id))
+            runes: slot.runes.filter((rune: any) => !REMOVED_IDS.has(rune.id))
         }))
     }));
+};
+
+const accumulateItemStats = (target: Stats, source: any) => {
+    if (source.ad) target.ad += source.ad;
+    if (source.ap) target.ap += source.ap;
+    if (source.hp) target.hp += source.hp;
+    if (source.hpRegen) target.hpRegen += source.hpRegen;
+    if (source.mp) target.mp += source.mp;
+    if (source.mpRegen) target.mpRegen += source.mpRegen;
+    if (source.armor) target.armor += source.armor;
+    if (source.mr) target.mr += source.mr;
+    if (source.haste) target.haste += source.haste;
+    if (source.crit) target.crit += source.crit;
+    if (source.moveSpeed) target.moveSpeed += source.moveSpeed;
+    if (source.magicPen) target.magicPen = (target.magicPen || 0) + source.magicPen;
+    if (source.lethality) target.lethality = (target.lethality || 0) + source.lethality;
 };
