@@ -131,8 +131,9 @@ export const ItemCatalog: React.FC<ItemCatalogProps> = ({ items, onItemSelect, t
       >
         <div style={{ height: `${totalHeight}px`, position: 'relative' }}>
           {visibleItems.map(item => (
-            <div
+            <button
               key={item.id}
+              type="button"
               style={{
                 position: 'absolute',
                 top: 0,
@@ -142,11 +143,8 @@ export const ItemCatalog: React.FC<ItemCatalogProps> = ({ items, onItemSelect, t
                 transform: `translateY(${item.virtualTop}px)`,
               }}
               // no drag from catalog, click only
-              role="button"
-              tabIndex={0}
               onClick={() => onItemSelect(item)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onItemSelect(item); }}
-              className="relative bg-[#1a1a1a] hover:bg-[#252525] border border-transparent hover:border-lol-gold/50 p-3 flex items-center gap-4 cursor-pointer transition rounded-2xl group select-none"
+              className="relative bg-[#1a1a1a] hover:bg-[#252525] border border-transparent hover:border-lol-gold/50 p-3 flex items-center gap-4 cursor-pointer transition rounded-2xl group select-none w-full text-left appearance-none"
             >
               <Image src={item.imageUrl} width={48} height={48} className="w-12 h-12 rounded-xl border border-gray-700 group-hover:border-lol-gold" alt={item.name} />
               <div className="flex-1 min-w-0">
@@ -156,7 +154,7 @@ export const ItemCatalog: React.FC<ItemCatalogProps> = ({ items, onItemSelect, t
               <Plus className="w-5 h-5 text-gray-600 group-hover:text-lol-gold" />
 
               {/* Hover Tooltip */}
-              <div className="absolute left-full top-0 ml-4 w-64 bg-[#121212] border border-lol-gold p-4 rounded-2xl shadow-2xl z-[100] hidden group-hover:block pointer-events-none">
+              <div className="absolute left-full top-0 ml-4 w-64 bg-[#121212] border border-lol-gold p-4 rounded-2xl shadow-2xl z-[100] hidden group-hover:block pointer-events-none text-left">
                 <div className="font-bold text-lol-gold mb-2 font-display text-lg">{item.name}</div>
                 <ItemTags tags={item.tags} />
                 <div className="text-xs text-gray-300 space-y-1 mb-3">
@@ -167,7 +165,7 @@ export const ItemCatalog: React.FC<ItemCatalogProps> = ({ items, onItemSelect, t
                 {item.passive && <div className="text-[10px] text-gray-400 border-t border-gray-800 pt-2"><span className="text-lol-gold font-bold">Passif:</span> {item.passive}</div>}
                 <div className="text-[10px] text-gray-500 mt-2 italic">{item.description}</div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
         {filteredItems.length === 0 && (

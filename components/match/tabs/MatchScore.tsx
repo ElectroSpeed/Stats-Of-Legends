@@ -153,11 +153,10 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                             const ringColor = isComparison ? COLORS[compIndex % COLORS.length] : 'transparent';
 
                             return (
-                                <div key={i}
-                                    role="button"
-                                    tabIndex={0}
+                                <button key={i}
+                                    type="button"
                                     className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
-                                        ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''}
+                                        ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''} bg-transparent border-none appearance-none p-0
                                     `}
                                     style={{
                                         boxShadow: isComparison ? `0 0 0 2px ${ringColor}` : 'none',
@@ -168,7 +167,6 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                                         if (isSelected) return;
                                         toggleComparison(p.puuid);
                                     }}
-                                    onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isSelected) toggleComparison(p.puuid); }}
                                 >
                                     <div className="relative">
                                         <Image src={p.champion.imageUrl} width={40} height={40} className="w-10 h-10 rounded-lg border border-blue-500/30" alt={p.champion.name} />
@@ -178,7 +176,7 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                                             <span>{p.legendScoreGrade || '-'}</span>
                                         </div>
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>
@@ -193,11 +191,10 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                             const ringColor = isComparison ? COLORS[compIndex % COLORS.length] : 'transparent';
 
                             return (
-                                <div key={i}
-                                    role="button"
-                                    tabIndex={0}
+                                <button key={i}
+                                    type="button"
                                     className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
-                                        ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''}
+                                        ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''} bg-transparent border-none appearance-none p-0
                                     `}
                                     style={{
                                         boxShadow: isComparison ? `0 0 0 2px ${ringColor}` : 'none',
@@ -208,7 +205,6 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                                         if (isSelected) return;
                                         toggleComparison(p.puuid);
                                     }}
-                                    onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isSelected) toggleComparison(p.puuid); }}
                                 >
                                     <div className="relative">
                                         <Image src={p.champion.imageUrl} width={40} height={40} className="w-10 h-10 rounded-lg border border-red-500/30" alt={p.champion.name} />
@@ -218,7 +214,7 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                                             <span>{p.legendScoreGrade || '-'}</span>
                                         </div>
                                     </div>
-                                </div>
+                                </button>
                             );
                         })}
                     </div>

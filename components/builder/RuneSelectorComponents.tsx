@@ -32,12 +32,10 @@ export interface RuneIconProps {
 }
 
 export const RuneIcon = ({ rune, isSelected, onClick, isKeystone, size = 48 }: RuneIconProps) => (
-    <div
-        role="button"
-        tabIndex={0}
-        className="relative group cursor-pointer flex-shrink-0 aspect-square flex items-center justify-center"
+    <button
+        type="button"
+        className="relative group cursor-pointer flex-shrink-0 aspect-square flex items-center justify-center p-0 border-none bg-transparent appearance-none"
         onClick={onClick}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
         style={{ width: size, height: size }}
     >
         <div className={`w-full h-full rounded-full border-2 transition-all duration-300 flex items-center justify-center overflow-hidden ${isSelected
@@ -57,13 +55,13 @@ export const RuneIcon = ({ rune, isSelected, onClick, isKeystone, size = 48 }: R
         </div>
 
         {/* Tooltip */}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-[#1a1a1a] border border-lol-gold/30 p-3 rounded-xl shadow-xl z-50 hidden group-hover:block pointer-events-none">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-[#1a1a1a] border border-lol-gold/30 p-3 rounded-xl shadow-xl z-50 hidden group-hover:block pointer-events-none text-left">
             <h4 className="text-lol-gold font-bold text-sm mb-1">{rune.name}</h4>
             <p className="text-[10px] text-gray-400 leading-tight">
                 {rune.shortDesc.replaceAll(/<[^>]*>?/gm, '')}
             </p>
         </div>
-    </div>
+    </button>
 );
 
 export interface PrimaryPathProps {
