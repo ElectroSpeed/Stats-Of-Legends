@@ -1,7 +1,7 @@
 import { Champion, Item, Stats } from '../types';
 import { getChampionIconUrl, getSpellIconUrl, getItemIconUrl } from './ddragon';
 
-const REMOVED_IDS = [8008, 8124, 9101, 9103, 8304, 8316, 8126];
+const REMOVED_IDS = new Set([8008, 8124, 9101, 9103, 8304, 8316, 8126]);
 
 export const transformChampionData = (champJson: any): Champion[] => {
     const patch = champJson.patch || 'latest';
@@ -230,7 +230,7 @@ export const cleanRuneData = (data: any[]) => {
         ...style,
         slots: style.slots.map((slot: any) => ({
             ...slot,
-            runes: slot.runes.filter((rune: any) => !REMOVED_IDS.includes(rune.id))
+            runes: slot.runes.filter((rune: any) => !REMOVED_IDS.has(rune.id))
         }))
     }));
 };
