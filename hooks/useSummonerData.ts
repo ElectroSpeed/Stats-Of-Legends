@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { SummonerProfile, Match, HeatmapDay, DetailedChampionStats, Teammate } from '@/types';
 
 export function useSummonerData(region: string, summonerName: string) {
