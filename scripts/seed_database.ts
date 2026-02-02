@@ -29,7 +29,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
-import { randomInt } from 'crypto';
+import { randomInt } from 'node:crypto';
 
 // Load .env and .env.local
 const envPath = path.join(__dirname, '../.env');
