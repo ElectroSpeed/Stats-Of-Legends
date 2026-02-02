@@ -55,7 +55,7 @@ const extractFromContent = (content: any): string | null => {
 };
 
 const checkTruncation = (obj: any): boolean => {
-  return obj && obj.finishReason === 'MAX_TOKENS';
+  return obj?.finishReason === 'MAX_TOKENS';
 };
 
 function extractTextFromResponse(response: any): { text: string; truncated: boolean } {

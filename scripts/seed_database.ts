@@ -221,42 +221,49 @@ async function executeFetchWithRetries(url: string, tier: string, division: stri
     let rateLimitRetries = 0;
 
     while (attempt <= maxRetries) {
-        try {
-            const res = await riotFetchRaw(url);
-
-            if (res.ok) {
-                return parseAndShufflePlayers(res.body || '[]', count);
-            }
-
-            if (res.status === 429) {
-                if (rateLimitRetries >= 10) return [];
-                console.warn(`\n⏳ Rate Limit Exceeded (429) for ${tier} ${division}. Waiting 120s...`);
-                await delay(120000);
-                rateLimitRetries++;
-                continue;
-            }
-
-            if (res.status >= 500 && res.status < 600) {
-                console.warn(`\n⚠️ Riot API Error ${res.status} Retrying...`);
-                await delay(5000);
-                attempt++;
-                continue;
-            }
-
-            console.error(`\n❌ Failed to fetch players: ${res.status}`);
-            return [];
-
-        } catch (e) {
-            console.error(`\n❌ Error fetching players: ${e}`);
-            if (attempt < maxRetries) {
-                await delay(5000);
-                attempt++;
-                continue;
-            }
-            return [];
+        const result = await attemptFetch(url, tier, division);
+        
+        if (result.success) {
+            return parseAndShufflePlayers(result.body || '[]', count);
         }
+
+        if (result.rateLimited) {
+            if (rateLimitRetries >= 10) return [];
+            await delay(120000);
+            rateLimitRetries++;
+            continue;
+        }
+
+        if (result.shouldRetry) {
+            await delay(5000);
+            attempt++;
+            continue;
+        }
+
+        break;
     }
     return [];
+}
+
+async function attemptFetch(url: string, tier: string, division: string) {
+    try {
+        const res = await riotFetchRaw(url);
+        if (res.ok) return { success: true, body: res.body };
+        if (res.status === 429) {
+            console.warn(`\n⏳ Rate Limit Exceeded (429) for ${tier} ${division}. Waiting 120s...`);
+            return { rateLimited: true };
+        }
+        if (res.status >= 500 && res.status < 600) {
+            console.warn(`\n⚠️ Riot API Error ${res.status} Retrying...`);
+            return { shouldRetry: true };
+        }
+        console.error(`\n❌ Failed to fetch players: ${res.status}`);
+        return { success: false };
+    } catch (e) {
+        console.error(`\n❌ Error fetching players: ${e}`);
+        return { shouldRetry: true };
+    }
+}
 }
 
 function parseAndShufflePlayers(body: string, count: number) {

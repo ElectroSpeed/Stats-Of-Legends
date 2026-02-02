@@ -215,7 +215,7 @@ export class ScoringService {
         const baselineVision = this.getBaselineMean('vision', 'totalVision', undefined, championStats, matchupStats);
         zScores.vision = (stats.vision - baselineVision) / getStdDev(baselineVision, 'vision');
 
-        const baselineObj = this.getBaselineMean('objective', 'totalObjectiveParticipation', undefined, championStats, matchupStats) || 2.0;
+        const baselineObj = this.getBaselineMean('objective', 'totalObjectiveParticipation', undefined, championStats, matchupStats) || 2;
         zScores.objective = (stats.objective - baselineObj) / getStdDev(baselineObj, 'objective');
 
         // Utility
@@ -235,7 +235,7 @@ export class ScoringService {
     }
 
     private static getBaselineMean(key: string, totalKey: string, shareKey?: string, championStats?: any, matchupStats?: any) {
-        const defaults = { kda: 3.0, damage: 600, gold: 400, cs: 6.0, vision: 1.0, objective: 0 };
+        const defaults = { kda: 3, damage: 600, gold: 400, cs: 6, vision: 1, objective: 0 };
         let globalMean = defaults[key as keyof typeof defaults];
 
         if (championStats && championStats.matches > 0) {

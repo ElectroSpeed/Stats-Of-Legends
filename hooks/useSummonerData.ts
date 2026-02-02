@@ -14,7 +14,7 @@ export function useSummonerData(region: string, summonerName: string) {
     const [lpHistory, setLpHistory] = useState<any[]>([]);
     const [version, setVersion] = useState<string>('15.24.1');
 
-    const loadData = async (isUpdate = false, isPolling = false) => {
+    async function loadData(isUpdate = false, isPolling = false) {
         if (isUpdate) setUpdating(true);
         else if (!isPolling) setLoading(true);
 
@@ -55,7 +55,7 @@ export function useSummonerData(region: string, summonerName: string) {
             setLoading(false);
             if (!isPolling) setUpdating(false);
         }
-    };
+    }
     
     return {
         loading,

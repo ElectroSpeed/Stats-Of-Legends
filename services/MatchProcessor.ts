@@ -117,6 +117,7 @@ export class MatchProcessor {
 
         // const championId = p.championName;
 
+
         const timelineData = await this.extractTimelineData(matchId, region, p.participantId);
         const itemStats = this.extractItems(p, timelineData.cleanEvents, itemMap);
         const runeStats = this.extractRunes(p);
@@ -197,6 +198,7 @@ export class MatchProcessor {
         const finalItems = [p.item0, p.item1, p.item2, p.item3, p.item4, p.item5].filter(id => id && id !== 0 && !IGNORED_ITEMS.has(id));
         const items: Record<string, any> = {};
 
+        // 1. Final Build
         const finalBuildKey = finalItems.sort((a, b) => a - b).join('-');
         if (finalBuildKey) items[finalBuildKey] = { wins: p.win ? 1 : 0, matches: 1, build: finalItems };
 
@@ -207,46 +209,54 @@ export class MatchProcessor {
         }
 
         if (cleanEvents.length > 0) {
-             const VISION_ITEMS = new Set([3340, 3363, 3364, 3330, 2055, 2049, 2045, 2044]);
-             const startingEvents = cleanEvents.filter(e => e.type === 'ITEM_PURCHASED' && e.timestamp <= 60000 && !VISION_ITEMS.has(e.itemId));
-             if (startingEvents.length > 0) {
-                 const startIds = startingEvents.map(e => e.itemId).sort((a: number, b: number) => a - b).join('-');
-                 const key = `start_${startIds}`;
-                 if (!items[key]) items[key] = { wins: 0, matches: 0 };
-                 items[key].wins += p.win ? 1 : 0;
-                 items[key].matches++;
-             }
-
-             const finalItemSet = new Set(finalItems);
-             const buildPath = cleanEvents.filter(e => {
-                 if (e.type !== 'ITEM_PURCHASED' || !finalItemSet.has(e.itemId)) return false;
-                 const itemData = itemMap[e.itemId];
-                 if (itemData) {
-                     const isBoots = itemData.tags && itemData.tags.includes('Boots');
-                     if (!isBoots && itemData.into && itemData.into.length > 0) return false;
-                 }
-                 return true;
-             }).map(e => e.itemId);
-
-             const uniqueBuildPath = Array.from(new Set(buildPath));
-             if (uniqueBuildPath.length >= 1) {
-                 const coreIds = uniqueBuildPath.slice(0, Math.min(uniqueBuildPath.length, 3));
-                 const coreKey = `core_${coreIds.join('-')}`;
-                 if (!items[coreKey]) items[coreKey] = { wins: 0, matches: 0 };
-                 items[coreKey].wins += p.win ? 1 : 0;
-                 items[coreKey].matches++;
-
-                 [3, 4, 5].forEach(idx => {
-                     if (uniqueBuildPath.length >= idx + 1) {
-                         const slotKey = `${coreKey}_slot${idx + 1}_${uniqueBuildPath[idx]}`;
-                         if (!items[slotKey]) items[slotKey] = { wins: 0, matches: 0 };
-                         items[slotKey].wins += p.win ? 1 : 0;
-                         items[slotKey].matches++;
-                     }
-                 });
-             }
+            this.extractStartingItems(items, cleanEvents, p.win);
+            this.extractBuildPath(items, cleanEvents, finalItems, itemMap, p.win);
         }
         return items;
+    }
+
+    private static extractStartingItems(items: Record<string, any>, cleanEvents: any[], win: boolean) {
+        const VISION_ITEMS = new Set([3340, 3363, 3364, 3330, 2055, 2049, 2045, 2044]);
+        const startingEvents = cleanEvents.filter(e => e.type === 'ITEM_PURCHASED' && e.timestamp <= 60000 && !VISION_ITEMS.has(e.itemId));
+        
+        if (startingEvents.length > 0) {
+            const startIds = startingEvents.map(e => e.itemId).sort((a: number, b: number) => a - b).join('-');
+            const key = `start_${startIds}`;
+            if (!items[key]) items[key] = { wins: 0, matches: 0 };
+            items[key].wins += win ? 1 : 0;
+            items[key].matches++;
+        }
+    }
+
+    private static extractBuildPath(items: Record<string, any>, cleanEvents: any[], finalItems: number[], itemMap: any, win: boolean) {
+        const finalItemSet = new Set(finalItems);
+        const buildPath = cleanEvents.filter(e => {
+            if (e.type !== 'ITEM_PURCHASED' || !finalItemSet.has(e.itemId)) return false;
+            const itemData = itemMap[e.itemId];
+            if (itemData) {
+                const isBoots = itemData.tags && itemData.tags.includes('Boots');
+                if (!isBoots && itemData.into && itemData.into.length > 0) return false;
+            }
+            return true;
+        }).map(e => e.itemId);
+
+        const uniqueBuildPath = Array.from(new Set(buildPath));
+        if (uniqueBuildPath.length >= 1) {
+            const coreIds = uniqueBuildPath.slice(0, Math.min(uniqueBuildPath.length, 3));
+            const coreKey = `core_${coreIds.join('-')}`;
+            if (!items[coreKey]) items[coreKey] = { wins: 0, matches: 0 };
+            items[coreKey].wins += win ? 1 : 0;
+            items[coreKey].matches++;
+
+            [3, 4, 5].forEach(idx => {
+                if (uniqueBuildPath.length >= idx + 1) {
+                    const slotKey = `${coreKey}_slot${idx + 1}_${uniqueBuildPath[idx]}`;
+                    if (!items[slotKey]) items[slotKey] = { wins: 0, matches: 0 };
+                    items[slotKey].wins += win ? 1 : 0;
+                    items[slotKey].matches++;
+                }
+            });
+        }
     }
 
     private static extractRunes(p: any) {
@@ -351,10 +361,10 @@ export class MatchProcessor {
                     totalVisionScorePerMin: { increment: shares.visionPerMin },
                     totalObjectiveParticipation: { increment: shares.objPart },
                     totalDamageShareSq: { increment: Math.pow(shares.damageShare, 2) },
-                    items: merge(existingStat.items, items) as any,
-                    runes: merge(existingStat.runes, runes) as any,
-                    spells: merge(existingStat.spells, spells) as any,
-                    skillOrder: merge(existingStat.skillOrder, skillOrder) as any
+                    items: merge(existingStat.items, items),
+                    runes: merge(existingStat.runes, runes),
+                    spells: merge(existingStat.spells, spells),
+                    skillOrder: merge(existingStat.skillOrder, skillOrder)
                 }
             });
         } else {
@@ -370,7 +380,7 @@ export class MatchProcessor {
                     totalVisionScorePerMin: shares.visionPerMin, totalObjectiveParticipation: shares.objPart,
                     totalGd15Sq: 0, totalCsd15Sq: 0, totalXpd15Sq: 0,
                     totalDamageShareSq: Math.pow(shares.damageShare, 2),
-                    items: items as any, runes: runes as any, spells: spells as any, skillOrder: skillOrder as any
+                    items: items, runes: runes, spells: spells, skillOrder: skillOrder
                 }
             });
         }

@@ -95,6 +95,7 @@ function getFallback(response) {
     return JSON.stringify(response);
   } catch (e) {
     // Return empty string on fallback failure
+    console.error(e);
     return ''; 
   }
 }
