@@ -153,7 +153,7 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                             const ringColor = isComparison ? COLORS[compIndex % COLORS.length] : 'transparent';
 
                             return (
-                                <button key={i}
+                                <button key={p.puuid}
                                     type="button"
                                     className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
                                         ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''} bg-transparent border-none appearance-none p-0
@@ -191,7 +191,7 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
                             const ringColor = isComparison ? COLORS[compIndex % COLORS.length] : 'transparent';
 
                             return (
-                                <button key={i}
+                                <button key={p.puuid}
                                     type="button"
                                     className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
                                         ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''} bg-transparent border-none appearance-none p-0
