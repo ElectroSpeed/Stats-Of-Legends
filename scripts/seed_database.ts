@@ -29,6 +29,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import { randomInt } from 'crypto';
 
 // Load .env and .env.local
 const envPath = path.join(__dirname, '../.env');
@@ -269,7 +270,14 @@ async function attemptFetch(url: string, tier: string, division: string) {
 function parseAndShufflePlayers(body: string, count: number) {
     const data = JSON.parse(body);
     const entries = Array.isArray(data) ? data : data.entries;
-    return entries.sort(() => 0.5 - Math.random()).slice(0, count);
+    
+    // Fisher-Yates shuffle with crypto.randomInt
+    for (let i = entries.length - 1; i > 0; i--) {
+        const j = randomInt(i + 1);
+        [entries[i], entries[j]] = [entries[j], entries[i]];
+    }
+
+    return entries.slice(0, count);
 }
 
 async function processPlayer(entry: any, tier: string, limit: number, onMatchProcessed: () => void) {
