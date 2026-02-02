@@ -64,22 +64,27 @@ function aggregateItemStats(items: (Item | null)[]) {
     const itemStats: Partial<Stats> = {};
     let itemBonusAs = 0;
 
+    const addStat = (stat: keyof Stats, value: number | undefined) => {
+        if (value) itemStats[stat] = (itemStats[stat] || 0) + value;
+    };
+
     items.forEach(item => {
         if (!item?.stats) return;
 
-        if (item.stats.ad) itemStats.ad = (itemStats.ad || 0) + item.stats.ad;
-        if (item.stats.ap) itemStats.ap = (itemStats.ap || 0) + item.stats.ap;
-        if (item.stats.hp) itemStats.hp = (itemStats.hp || 0) + item.stats.hp;
-        if (item.stats.mp) itemStats.mp = (itemStats.mp || 0) + item.stats.mp;
-        if (item.stats.mpRegen) itemStats.mpRegen = (itemStats.mpRegen || 0) + item.stats.mpRegen;
-        if (item.stats.armor) itemStats.armor = (itemStats.armor || 0) + item.stats.armor;
-        if (item.stats.mr) itemStats.mr = (itemStats.mr || 0) + item.stats.mr;
-        if (item.stats.haste) itemStats.haste = (itemStats.haste || 0) + item.stats.haste;
-        if (item.stats.crit) itemStats.crit = (itemStats.crit || 0) + item.stats.crit;
-        if (item.stats.moveSpeed) itemStats.moveSpeed = (itemStats.moveSpeed || 0) + item.stats.moveSpeed;
+        addStat('ad', item.stats.ad);
+        addStat('ap', item.stats.ap);
+        addStat('hp', item.stats.hp);
+        addStat('mp', item.stats.mp);
+        addStat('mpRegen', item.stats.mpRegen);
+        addStat('armor', item.stats.armor);
+        addStat('mr', item.stats.mr);
+        addStat('haste', item.stats.haste);
+        addStat('crit', item.stats.crit);
+        addStat('moveSpeed', item.stats.moveSpeed);
+        addStat('magicPen', item.stats.magicPen);
+        addStat('lethality', item.stats.lethality);
+        
         if (item.stats.attackSpeed) itemBonusAs += item.stats.attackSpeed;
-        if (item.stats.magicPen) itemStats.magicPen = (itemStats.magicPen || 0) + item.stats.magicPen;
-        if (item.stats.lethality) itemStats.lethality = (itemStats.lethality || 0) + item.stats.lethality;
     });
 
     return { itemStats, itemBonusAs };
