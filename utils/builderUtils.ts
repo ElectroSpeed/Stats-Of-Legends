@@ -150,13 +150,13 @@ export const calculateRuneDamage = (runeId: number | null, stats: Stats, champio
 
     // Comet (ID: 8229)
     if (runeId === 8229) {
-        const damage = (30 + (70 * (championLevel - 1) / 17)) + (0.35 * bonusAd) + (0.20 * stats.ap);
+        const damage = (30 + (70 * (championLevel - 1) / 17)) + (0.35 * bonusAd) + (0.2 * stats.ap);
         return applyDamage(damage, false);
     }
 
     // Aery (ID: 8214)
     if (runeId === 8214) {
-        const damage = (10 + (30 * (championLevel - 1) / 17)) + (0.15 * bonusAd) + (0.10 * stats.ap);
+        const damage = (10 + (30 * (championLevel - 1) / 17)) + (0.15 * bonusAd) + (0.1 * stats.ap);
         return applyDamage(damage, false);
     }
 
