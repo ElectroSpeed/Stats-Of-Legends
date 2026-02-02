@@ -127,53 +127,43 @@ export const calculateRuneDamage = (runeId: number | null, stats: Stats, champio
     const baseAd = currentChampion?.baseStats?.ad || 0;
     const bonusAd = stats.ad - baseAd;
 
+    const applyDamage = (rawDamage: number, isAd: boolean) => {
+        const effectiveResist = getEffectiveResist(dummy, stats, isAd);
+        return rawDamage * getReduction(effectiveResist);
+    };
+
+    const getAdaptiveAd = (threshold = 0) => stats.ad > stats.ap + threshold;
+
     // Manual implementation of popular keystones
     // Electrocute (ID: 8112): 30-180 (+0.4 bonus AD, +0.25 AP)
     if (runeId === 8112) {
-        const base = 30 + (150 * (championLevel - 1) / 17);
-        const scaling = (0.4 * bonusAd) + (0.25 * stats.ap);
-        const damage = base + scaling;
-        const isAd = stats.ad > stats.ap + 100;
-        const effectiveResist = getEffectiveResist(dummy, stats, isAd);
-        return damage * getReduction(effectiveResist);
+        const damage = (30 + (150 * (championLevel - 1) / 17)) + (0.4 * bonusAd) + (0.25 * stats.ap);
+        return applyDamage(damage, getAdaptiveAd(100));
     }
 
     // Dark Harvest (ID: 8128)
     if (runeId === 8128) {
         const souls = 10;
-        const base = 20 + (40 * (championLevel - 1) / 17) + (5 * souls);
-        const scaling = (0.25 * bonusAd) + (0.15 * stats.ap);
-        const damage = base + scaling;
-        const isAd = stats.ad > stats.ap + 100;
-        const effectiveResist = getEffectiveResist(dummy, stats, isAd);
-        return damage * getReduction(effectiveResist);
+        const damage = (20 + (40 * (championLevel - 1) / 17) + (5 * souls)) + (0.25 * bonusAd) + (0.15 * stats.ap);
+        return applyDamage(damage, getAdaptiveAd(100));
     }
 
     // Comet (ID: 8229)
     if (runeId === 8229) {
-        const base = 30 + (70 * (championLevel - 1) / 17);
-        const scaling = (0.35 * bonusAd) + (0.20 * stats.ap);
-        const damage = base + scaling;
-        const effectiveResist = getEffectiveResist(dummy, stats, false);
-        return damage * getReduction(effectiveResist);
+        const damage = (30 + (70 * (championLevel - 1) / 17)) + (0.35 * bonusAd) + (0.20 * stats.ap);
+        return applyDamage(damage, false);
     }
 
     // Aery (ID: 8214)
     if (runeId === 8214) {
-        const base = 10 + (30 * (championLevel - 1) / 17);
-        const scaling = (0.15 * bonusAd) + (0.10 * stats.ap);
-        const damage = base + scaling;
-        const effectiveResist = getEffectiveResist(dummy, stats, false);
-        return damage * getReduction(effectiveResist);
+        const damage = (10 + (30 * (championLevel - 1) / 17)) + (0.15 * bonusAd) + (0.10 * stats.ap);
+        return applyDamage(damage, false);
     }
 
     // Press the Attack (ID: 8005)
     if (runeId === 8005) {
-        const base = 40 + (140 * (championLevel - 1) / 17);
-        const damage = base;
-        const isAd = stats.ad > stats.ap;
-        const effectiveResist = getEffectiveResist(dummy, stats, isAd);
-        return damage * getReduction(effectiveResist);
+        const damage = 40 + (140 * (championLevel - 1) / 17);
+        return applyDamage(damage, getAdaptiveAd(0));
     }
 
     return 0;
@@ -236,17 +226,15 @@ export const cleanRuneData = (data: any[]) => {
 };
 
 const accumulateItemStats = (target: Stats, source: any) => {
-    if (source.ad) target.ad += source.ad;
-    if (source.ap) target.ap += source.ap;
-    if (source.hp) target.hp += source.hp;
-    if (source.hpRegen) target.hpRegen += source.hpRegen;
-    if (source.mp) target.mp += source.mp;
-    if (source.mpRegen) target.mpRegen += source.mpRegen;
-    if (source.armor) target.armor += source.armor;
-    if (source.mr) target.mr += source.mr;
-    if (source.haste) target.haste += source.haste;
-    if (source.crit) target.crit += source.crit;
-    if (source.moveSpeed) target.moveSpeed += source.moveSpeed;
-    if (source.magicPen) target.magicPen = (target.magicPen || 0) + source.magicPen;
-    if (source.lethality) target.lethality = (target.lethality || 0) + source.lethality;
+    const statKeys: (keyof Stats)[] = [
+        'ad', 'ap', 'hp', 'hpRegen', 'mp', 'mpRegen',
+        'armor', 'mr', 'haste', 'crit', 'moveSpeed',
+        'magicPen', 'lethality'
+    ];
+    
+    statKeys.forEach(key => {
+        if (source[key]) {
+            target[key] = (target[key] || 0) + source[key];
+        }
+    });
 };

@@ -84,6 +84,26 @@ export const LeaderboardService = {
         return topChamps;
     },
 
+    mapRankToEntry: async (r: any, region: string, championMap: Record<number, string>) => {
+        const topChampions = await LeaderboardService.getTopChampions(r.summonerPuuid, championMap);
+        return {
+            puuid: r.summonerPuuid,
+            summonerName: r.summoner.gameName,
+            tagLine: r.summoner.tagLine,
+            region: region,
+            profileIconId: r.summoner.profileIconId,
+            tier: r.tier,
+            rank: r.rank,
+            lp: r.leaguePoints,
+            wins: r.wins,
+            losses: r.losses,
+            winrate: (r.wins / (r.wins + r.losses)) * 100,
+            rankValue: r.rankValue.toString(), // Convert BigInt to string for JSON
+            legendScore: r.legendScore,
+            topChampions: topChampions
+        };
+    },
+
     /**
      * Fetches the leaderboard with cursor-based pagination.
      */
@@ -118,25 +138,7 @@ export const LeaderboardService = {
         const championMap = await RiotService.getChampionIdMap(CURRENT_PATCH);
 
         // Map to LeaderboardEntry format for frontend compatibility
-        const players = await Promise.all(ranks.map(async (r) => {
-            const topChampions = await LeaderboardService.getTopChampions(r.summonerPuuid, championMap);
-            return {
-                puuid: r.summonerPuuid,
-                summonerName: r.summoner.gameName,
-                tagLine: r.summoner.tagLine,
-                region: region,
-                profileIconId: r.summoner.profileIconId,
-                tier: r.tier,
-                rank: r.rank,
-                lp: r.leaguePoints,
-                wins: r.wins,
-                losses: r.losses,
-                winrate: (r.wins / (r.wins + r.losses)) * 100,
-                rankValue: r.rankValue.toString(), // Convert BigInt to string for JSON
-                legendScore: r.legendScore,
-                topChampions: topChampions
-            };
-        }));
+        const players = await Promise.all(ranks.map(r => LeaderboardService.mapRankToEntry(r, region, championMap)));
 
         return { players, nextCursor, totalPlayers };
     },
@@ -177,30 +179,10 @@ export const LeaderboardService = {
         // Fetch Champion Map once
         const championMap = await RiotService.getChampionIdMap(CURRENT_PATCH);
 
-        const mapToEntry = async (r: any) => {
-            const topChampions = await LeaderboardService.getTopChampions(r.summonerPuuid, championMap);
-            return {
-                puuid: r.summonerPuuid,
-                summonerName: r.summoner.gameName,
-                tagLine: r.summoner.tagLine,
-                region: region,
-                profileIconId: r.summoner.profileIconId,
-                tier: r.tier,
-                rank: r.rank,
-                lp: r.leaguePoints,
-                wins: r.wins,
-                losses: r.losses,
-                winrate: (r.wins / (r.wins + r.losses)) * 100,
-                rankValue: r.rankValue.toString(),
-                legendScore: r.legendScore,
-                topChampions: topChampions
-            };
-        };
-
         // Return sorted list: [...above.reverse(), player, ...below]
-        const aboveMapped = await Promise.all(above.reverse().map(mapToEntry));
-        const playerMapped = await mapToEntry(playerRank);
-        const belowMapped = await Promise.all(below.map(mapToEntry));
+        const aboveMapped = await Promise.all(above.reverse().map(r => LeaderboardService.mapRankToEntry(r, region, championMap)));
+        const playerMapped = await LeaderboardService.mapRankToEntry(playerRank, region, championMap);
+        const belowMapped = await Promise.all(below.map(r => LeaderboardService.mapRankToEntry(r, region, championMap)));
 
         return [...aboveMapped, playerMapped, ...belowMapped];
     }
