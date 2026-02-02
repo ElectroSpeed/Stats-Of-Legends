@@ -27,7 +27,7 @@ const LoginScreen = ({ secretKey, setSecretKey, handleLogin }: any) => (
                 />
             </label>
             <button
-                onClick={() => { handleLogin().catch(console.error); }}
+                onClick={() => { void handleLogin().catch(console.error); }}
                 className="w-full bg-lol-gold text-black font-bold py-3 rounded-lg hover:bg-yellow-500 transition"
             >
                 Unlock Dashboard
@@ -153,7 +153,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
             <div className="flex gap-4">
                 {!status.isScanning ? (
                     <button
-                        onClick={() => { actions.startScan().catch(console.error); }}
+                        onClick={() => { void actions.startScan().catch(console.error); }}
                         className={`flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl 
                             font-bold flex items-center justify-center gap-2 transition`}
                     >
@@ -170,7 +170,7 @@ const DashboardControls = ({ config, actions, status, options }: DashboardContro
                 )}
             </div>
             <button
-                onClick={() => { actions.reset().catch(console.error); }}
+                onClick={() => { void actions.reset().catch(console.error); }}
                 className={`w-full bg-white/5 hover:bg-white/10 text-gray-400 py-3 rounded-xl 
                     font-bold flex items-center justify-center gap-2 transition border border-white/5`}
             >
