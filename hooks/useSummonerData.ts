@@ -69,7 +69,7 @@ export function useSummonerData(region: string, summonerName: string) {
         performance,
         lpHistory,
         version,
-        updateData
+        updateData: loadData
     };
 }
 

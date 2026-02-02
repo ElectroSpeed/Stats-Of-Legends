@@ -264,7 +264,7 @@ async function attemptFetch(url: string, tier: string, division: string) {
         return { shouldRetry: true };
     }
 }
-}
+
 
 function parseAndShufflePlayers(body: string, count: number) {
     const data = JSON.parse(body);

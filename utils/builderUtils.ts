@@ -1,6 +1,8 @@
 import { Champion, Item, Stats } from '../types';
 import { getChampionIconUrl, getSpellIconUrl, getItemIconUrl } from './ddragon';
 
+const REMOVED_IDS = [8008, 8124, 9101, 9103, 8304, 8316, 8126];
+
 export const transformChampionData = (champJson: any): Champion[] => {
     const patch = champJson.patch || 'latest';
     return (champJson.data || []).map((c: any) => ({
@@ -223,6 +225,7 @@ export const calculateNewSecondaryPerks = (runeId: number, currentPerks: (number
     return next;
 };
 
+export const cleanRuneData = (data: any[]) => {
     return data.map((style: any) => ({
         ...style,
         slots: style.slots.map((slot: any) => ({
