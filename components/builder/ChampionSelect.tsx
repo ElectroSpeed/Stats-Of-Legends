@@ -44,7 +44,7 @@ export const ChampionSelect: React.FC<ChampionSelectProps> = ({
                 </div>
 
                 <div className="flex items-center gap-8 relative z-10">
-                    <div className="relative cursor-pointer group" role="button" tabIndex={0} onClick={() => setIsChampSelectOpen(!isChampSelectOpen)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsChampSelectOpen(!isChampSelectOpen); }}>
+                    <button type="button" className="relative cursor-pointer group appearance-none bg-transparent border-none p-0 text-left" onClick={() => setIsChampSelectOpen(!isChampSelectOpen)}>
                         <div className="absolute -inset-2 bg-lol-gold rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity"></div>
                         {champImage && (
                             <Image src={champImage} width={112} height={112} alt={champName || ''} className="relative w-28 h-28 rounded-full border-4 border-[#121212] ring-2 ring-lol-gold shadow-2xl transition-transform group-hover:scale-105 object-cover" />
@@ -52,7 +52,7 @@ export const ChampionSelect: React.FC<ChampionSelectProps> = ({
                         <div className="absolute bottom-0 right-0 bg-[#091428] border border-lol-gold rounded-full p-1.5 z-20">
                             <ChevronDown className="w-4 h-4 text-lol-gold" />
                         </div>
-                    </div>
+                    </button>
 
                     <div className="flex-1">
                         <div className="flex items-center justify-between">
@@ -149,15 +149,13 @@ const ChampionCard = ({ champ, isSelected, onClick }: { champ: Champion, isSelec
         : 'border-transparent hover:border-lol-gold/30';
 
     return (
-        <div
-            role="button"
-            tabIndex={0}
+        <button
+            type="button"
             onClick={onClick}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
-            className={`flex flex-col items-center gap-3 p-4 hover:bg-white/5 cursor-pointer rounded-2xl border transition-all ${cardClass}`}
+            className={`flex flex-col items-center gap-3 p-4 hover:bg-white/5 cursor-pointer rounded-2xl border transition-all ${cardClass} appearance-none bg-transparent w-full`}
         >
             <Image src={champ.imageUrl} width={56} height={56} className="w-14 h-14 rounded-full border border-gray-700 shadow-sm" alt={champ.name} />
             <span className="text-[10px] text-center text-gray-300 font-bold uppercase truncate w-full">{champ.name}</span>
-        </div>
+        </button>
     );
 };

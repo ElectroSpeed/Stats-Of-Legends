@@ -139,91 +139,33 @@ export const MatchScore: React.FC<MatchScoreProps> = ({ participants, timelineDa
             </div >
 
             {/* Score Cards */}
-            < div className="grid grid-cols-1 md:grid-cols-2 gap-8" >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                     <h4 className="text-xs font-bold text-blue-400 uppercase mb-4 flex justify-between items-center">
                         <span>Winning Team</span>
-                        <span className="text-[10px] font-normal text-gray-600 normal-case">Click to compare</span>
+                        <span className="text-xs font-normal text-gray-600 normal-case">Click to compare</span>
                     </h4>
-                    <div className="flex gap-2 justify-center flex-wrap">
-                        {winningTeam.map((p, i) => {
-                            const isSelected = selectedPuuid === p.puuid;
-                            const isComparison = comparePuuids.includes(p.puuid);
-                            const compIndex = comparePuuids.indexOf(p.puuid);
-                            const ringColor = isComparison ? COLORS[compIndex % COLORS.length] : 'transparent';
-
-                            return (
-                                <div key={i}
-                                    role="button"
-                                    tabIndex={0}
-                                    className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
-                                        ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''}
-                                    `}
-                                    style={{
-                                        boxShadow: isComparison ? `0 0 0 2px ${ringColor}` : 'none',
-                                        borderRadius: '0.5rem',
-                                        transform: isComparison || isSelected ? 'scale(1.05)' : 'scale(1)'
-                                    }}
-                                    onClick={() => {
-                                        if (isSelected) return;
-                                        toggleComparison(p.puuid);
-                                    }}
-                                    onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isSelected) toggleComparison(p.puuid); }}
-                                >
-                                    <div className="relative">
-                                        <Image src={p.champion.imageUrl} width={40} height={40} className="w-10 h-10 rounded-lg border border-blue-500/30" alt={p.champion.name} />
-                                        <div
-                                            className={`absolute -bottom-2 -right-2 ${getGradeColor(p.legendScoreGrade)} text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md flex gap-1 items-center`}
-                                        >
-                                            <span>{p.legendScoreGrade || '-'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                    <TeamPlayerList
+                        team={winningTeam}
+                        selectedPuuid={selectedPuuid}
+                        comparePuuids={comparePuuids}
+                        toggleComparison={toggleComparison}
+                        COLORS={COLORS}
+                        borderColor="border-blue-500/30"
+                    />
                 </div>
                 <div>
                     <h4 className="text-xs font-bold text-red-400 uppercase mb-4">Losing Team</h4>
-                    <div className="flex gap-2 justify-center flex-wrap">
-                        {losingTeam.map((p, i) => {
-                            const isSelected = selectedPuuid === p.puuid;
-                            const isComparison = comparePuuids.includes(p.puuid);
-                            const compIndex = comparePuuids.indexOf(p.puuid);
-                            const ringColor = isComparison ? COLORS[compIndex % COLORS.length] : 'transparent';
-
-                            return (
-                                <div key={i}
-                                    role="button"
-                                    tabIndex={0}
-                                    className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
-                                        ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''}
-                                    `}
-                                    style={{
-                                        boxShadow: isComparison ? `0 0 0 2px ${ringColor}` : 'none',
-                                        borderRadius: '0.5rem',
-                                        transform: isComparison || isSelected ? 'scale(1.05)' : 'scale(1)'
-                                    }}
-                                    onClick={() => {
-                                        if (isSelected) return;
-                                        toggleComparison(p.puuid);
-                                    }}
-                                    onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isSelected) toggleComparison(p.puuid); }}
-                                >
-                                    <div className="relative">
-                                        <Image src={p.champion.imageUrl} width={40} height={40} className="w-10 h-10 rounded-lg border border-red-500/30" alt={p.champion.name} />
-                                        <div
-                                            className={`absolute -bottom-2 -right-2 ${getGradeColor(p.legendScoreGrade)} text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md flex gap-1 items-center`}
-                                        >
-                                            <span>{p.legendScoreGrade || '-'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                    <TeamPlayerList
+                        team={losingTeam}
+                        selectedPuuid={selectedPuuid}
+                        comparePuuids={comparePuuids}
+                        toggleComparison={toggleComparison}
+                        COLORS={COLORS}
+                        borderColor="border-red-500/30"
+                    />
                 </div>
-            </div >
+            </div>
 
             {/* Graph */}
             < div className="h-64 bg-[#121212] rounded-xl p-4 border border-white/5 mt-4" >
@@ -277,3 +219,48 @@ const ComparisonToggle = ({ mode, setMode }: { mode: 'CHAMPION' | 'TIER', setMod
         </>
     );
 };
+
+const TeamPlayerList = ({ team, selectedPuuid, comparePuuids, toggleComparison, COLORS, borderColor }: {
+    team: Participant[],
+    selectedPuuid: string | undefined,
+    comparePuuids: string[],
+    toggleComparison: (id: string) => void,
+    COLORS: string[],
+    borderColor: string
+}) => (
+    <div className="flex gap-2 justify-center flex-wrap">
+        {team.map((p, i) => {
+            const isSelected = selectedPuuid === p.puuid;
+            const isComparison = comparePuuids.includes(p.puuid || '');
+            const compIndex = comparePuuids.indexOf(p.puuid || '');
+            const ringColor = isComparison ? COLORS[compIndex % COLORS.length] : 'transparent';
+
+            return (
+                <button key={p.puuid}
+                    type="button"
+                    className={`flex flex-col items-center gap-1 cursor-pointer transition-transform hover:scale-110 
+                        ${isSelected ? 'ring-2 ring-white rounded-lg scale-105' : ''} bg-transparent border-none appearance-none p-0
+                    `}
+                    style={{
+                        boxShadow: isComparison ? `0 0 0 2px ${ringColor}` : 'none',
+                        borderRadius: '0.5rem',
+                        transform: isComparison || isSelected ? 'scale(1.05)' : 'scale(1)'
+                    }}
+                    onClick={() => {
+                        if (isSelected) return;
+                        toggleComparison(p.puuid || '');
+                    }}
+                >
+                    <div className="relative">
+                        <Image src={p.champion.imageUrl} width={40} height={40} className={`w-10 h-10 rounded-lg border ${borderColor}`} alt={p.champion.name} />
+                        <div
+                            className={`absolute -bottom-2 -right-2 ${getGradeColor(p.legendScoreGrade)} text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md flex gap-1 items-center`}
+                        >
+                            <span>{p.legendScoreGrade || '-'}</span>
+                        </div>
+                    </div>
+                </button>
+            );
+        })}
+    </div>
+);

@@ -20,19 +20,17 @@ export const StatRow = ({ label, value, suffix = '', color = 'text-gray-300' }: 
 );
 
 export const DamageRow = ({ label, value, checked, onToggle, suffix }: any) => (
-    <div
-        role="button"
-        tabIndex={0}
-        className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all ${checked ? 'bg-white/5 border border-white/5' : 'opacity-40 hover:opacity-70 border border-transparent'}`}
+    <button
+        type="button"
+        className={`w-full flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all ${checked ? 'bg-white/5 border border-white/5' : 'opacity-40 hover:opacity-70 border border-transparent'}`}
         onClick={onToggle}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onToggle(); }}
     >
         <div className="flex items-center gap-3 overflow-hidden">
             {checked ? <CheckSquare className="w-4 h-4 text-lol-gold" /> : <Square className="w-4 h-4 text-gray-600" />}
             <span className="text-xs text-gray-300 truncate font-medium">{label} {suffix && <span className="text-[10px] text-gray-500 ml-1">{suffix}</span>}</span>
         </div>
         <span className="font-mono text-sm font-bold text-white whitespace-nowrap">{value}</span>
-    </div>
+    </button>
 );
 
 export const DummyInput = ({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) => (
