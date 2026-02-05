@@ -49,7 +49,7 @@ export const Footer = () => {
             <ul className="space-y-3 text-sm text-gray-500">
               <li><SafeLink href="/" className="hover:text-lol-gold transition-colors">{t.navHome}</SafeLink></li>
               <li><SafeLink href="/builder" className="hover:text-lol-gold transition-colors">{t.navBuilder}</SafeLink></li>
-              <li><SafeLink href="/leaderboard" className="hover:text-lol-gold transition-colors">{t.navLeaderboard}</SafeLink></li>
+
               <li>
                 <button onClick={(e) => handlePlaceholderClick(e, 'API Status')} className="hover:text-lol-gold transition-colors text-left">
                   {t.apiStatus}
