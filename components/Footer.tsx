@@ -33,7 +33,7 @@ export const Footer = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-2">
-            <h3 className="font-display font-bold text-white text-xl tracking-wider mb-4 uppercase">{t.footerTitle}</h3>
+            <h3 className="uppercase font-bold text-white text-xl tracking-wider mb-4 uppercase">{t.footerTitle}</h3>
             <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
               {t.footerTagline}
             </p>
@@ -49,7 +49,7 @@ export const Footer = () => {
             <ul className="space-y-3 text-sm text-gray-500">
               <li><SafeLink href="/" className="hover:text-lol-gold transition-colors">{t.navHome}</SafeLink></li>
               <li><SafeLink href="/builder" className="hover:text-lol-gold transition-colors">{t.navBuilder}</SafeLink></li>
-
+              <li><SafeLink href="/leaderboard" className="hover:text-lol-gold transition-colors">{t.navLeaderboard}</SafeLink></li>
               <li>
                 <button onClick={(e) => handlePlaceholderClick(e, 'API Status')} className="hover:text-lol-gold transition-colors text-left">
                   {t.apiStatus}
@@ -94,11 +94,32 @@ export const Footer = () => {
   );
 };
 
-const SocialIcon = ({ icon, onClick }: { icon: React.ReactNode, onClick: (e: React.MouseEvent) => void }) => (
-  <button
-    onClick={onClick}
-    className="w-10 h-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
-  >
-    {icon}
-  </button>
+const SocialIcon = ({ icon, onClick }: { icon: React.ReactNode; onClick: (e: React.MouseEvent) => void }) => (
+    <button
+        onClick={onClick}
+        className="
+      relative
+      w-10 h-10
+      rounded-full
+      bg-[#121212]
+      border border-white/10
+      flex items-center justify-center
+      text-gray-400
+      transition-all duration-300
+      cursor-pointer
+      group
+      overflow-hidden
+      hover:border-lol-gold/40
+      hover:text-lol-gold
+      hover:shadow-[0_0_15px_rgba(200,170,110,0.25)]
+    "
+    >
+        {/* Glow */}
+        <span className="absolute inset-0 bg-lol-gold/10 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"/>
+
+        {/* Icon */}
+        <span className="relative z-10">
+      {icon}
+    </span>
+    </button>
 );
