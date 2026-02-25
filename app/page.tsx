@@ -6,7 +6,7 @@ import { NavigationBlocks } from '../components/NavigationBlocks';
 
 export default function Home() {
     return (
-        <div className="animate-fadeIn">
+        <div>
             <React.Suspense fallback={<div className="h-[600px] w-full bg-[#050505] animate-pulse" />}>
                 <SearchHero />
             </React.Suspense>

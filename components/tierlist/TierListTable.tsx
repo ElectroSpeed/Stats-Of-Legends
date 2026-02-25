@@ -12,8 +12,8 @@ interface TierListTableProps {
 export const TierListTable: React.FC<TierListTableProps> = ({ data, sortConfig, onSort }) => {
     const headers: { key: keyof ChampionTier; label: string; sortable: boolean }[] = [
         { key: 'rank', label: 'Rank', sortable: true },
-        { key: 'role', label: 'Role', sortable: true },
         { key: 'name', label: 'Champion', sortable: true },
+        { key: 'role', label: 'Role', sortable: true },
         { key: 'tier', label: 'Tier', sortable: true },
         { key: 'winRate', label: 'Win Rate', sortable: true },
         { key: 'pickRate', label: 'Pick Rate', sortable: true },
