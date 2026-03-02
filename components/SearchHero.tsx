@@ -1,294 +1,319 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, ArrowRight, History, X } from 'lucide-react';
-import { Region, SeasonInfo, Language } from '../types';
-import { REGIONS, CURRENT_SEASON_INFO, TRANSLATIONS } from '../constants';
-import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import React, { useState, useEffect, useRef } from "react";
+import { Search, ArrowRight, ChevronDown } from "lucide-react";
+import { Region, SeasonInfo, Language } from "../types";
+import { REGIONS, CURRENT_SEASON_INFO, TRANSLATIONS } from "../constants";
+import { useSafeNavigation } from "../hooks/useSafeNavigation";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useLanguage } from "../app/LanguageContext";
-import { RegionButton } from './search/RegionButton';
 
 interface SearchHeroProps {
-  onSearch?: (query: string, region: Region) => void;
-  seasonInfo?: SeasonInfo;
-  lang?: Language;
+    onSearch?: (query: string, region: Region) => void;
+    seasonInfo?: SeasonInfo;
+    lang?: Language;
 }
 
 interface RecentSearch {
-  name: string;
-  tag: string;
-  region: Region;
-  timestamp: number;
+    name: string;
+    tag: string;
+    region: Region;
+    timestamp: number;
 }
 
+export const SearchHero: React.FC<SearchHeroProps> = ({
+                                                          onSearch,
+                                                          seasonInfo,
+                                                          lang,
+                                                      }) => {
 
+    const [input, setInput] = useState("");
+    const [selectedRegion, setSelectedRegion] = useState<Region>("EUW");
 
-export const SearchHero: React.FC<SearchHeroProps> = ({ onSearch, seasonInfo, lang }) => {
-  const [input, setInput] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState<Region>('EUW');
-  const [suggestions, setSuggestions] = useState<{ gameName: string; tagLine: string; puuid: string; }[]>([]);
-  const [loadingSuggest, setLoadingSuggest] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [loadingSuggest, setLoadingSuggest] = useState(false);
 
-  const [recentSearches, setRecentSearches, isStorageReady] = useLocalStorage<RecentSearch[]>('recent_searches_v1', []);
+    const [isFocused, setIsFocused] = useState(false);
+    const [isRegionMenuOpen, setIsRegionMenuOpen] = useState(false);
 
-  const { push } = useSafeNavigation();
-  const { lang: ctxLang } = useLanguage();
-  const t = lang ? TRANSLATIONS[lang] : TRANSLATIONS[ctxLang];
+    const [recentSearches, setRecentSearches] =
+        useLocalStorage<RecentSearch[]>("recent_searches_v1", []);
 
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wrapperRef = useRef<HTMLFormElement>(null);
+    const { push } = useSafeNavigation();
+    const { lang: ctxLang } = useLanguage();
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setIsFocused(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [wrapperRef]);
+    const t = lang ? TRANSLATIONS[lang] : TRANSLATIONS[ctxLang];
 
-  const addToRecent = (gameName: string, tagLine: string, region: Region) => {
-    setRecentSearches(prev => {
-      // Remove duplicates
-      const filtered = prev.filter(item =>
-        !(item.name.toLowerCase() === gameName.toLowerCase() &&
-          item.tag.toLowerCase() === tagLine.toLowerCase() &&
-          item.region === region)
-      );
-      // Add to top, limit to 5
-      return [{ name: gameName, tag: tagLine, region, timestamp: Date.now() }, ...filtered].slice(0, 5);
-    });
-  };
+    const wrapperRef = useRef<HTMLFormElement>(null);
 
-  const removeRecent = (e: React.MouseEvent, index: number) => {
-    e.stopPropagation();
-    setRecentSearches(prev => prev.filter((_, i) => i !== index));
-  };
+    const info = seasonInfo ?? CURRENT_SEASON_INFO;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    /* ====================================================== */
+    /* GLOBAL OUTSIDE CLOSE HANDLER */
+    /* ====================================================== */
 
-    if (input.trim()) {
-      let name = input;
-      let tag = selectedRegion as string;
+    useEffect(() => {
 
-      if (input.includes('#')) {
-        [name, tag] = input.split('#');
-      } else if (input.includes('-')) {
-        [name, tag] = input.split('-');
-      }
+        const handleClickOutside = (event: MouseEvent) => {
 
-      // Save to recent
-      addToRecent(name, tag, selectedRegion);
+            if (wrapperRef.current &&
+                !wrapperRef.current.contains(event.target as Node)) {
 
-      let fullQuery = input;
-      if (!fullQuery.includes('#')) {
-        fullQuery = `${fullQuery}-${selectedRegion}`;
-      } else {
-        fullQuery = fullQuery.replace('#', '-');
-      }
+                setIsFocused(false);
+                setIsRegionMenuOpen(false);
+            }
+        };
 
-      if (onSearch) {
-        onSearch(fullQuery, selectedRegion);
-      } else {
-        push(`/summoner/${selectedRegion}/${encodeURIComponent(fullQuery)}`);
-      }
-      setSuggestions([]);
-      setIsFocused(false);
-    }
-  };
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsFocused(false);
+                setIsRegionMenuOpen(false);
+            }
+        };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
-  };
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleEscape);
 
-  const DEBOUNCE_DELAY = 500;
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleEscape);
+        };
 
-  useEffect(() => {
-    if (!input || input.length < 3) {
-      setSuggestions([]);
-      return;
-    }
+    }, []);
 
-    const timer = setTimeout(async () => {
-      setLoadingSuggest(true);
-      try {
-        const apiResponse = await fetch(`/api/riot/search?query=${encodeURIComponent(input)}&region=${encodeURIComponent(selectedRegion)}`);
-        if (apiResponse.ok) {
-          const searchData = await apiResponse.json();
-          setSuggestions(searchData.suggestions || []);
+    /* ====================================================== */
+
+    const addToRecent = (gameName: string, tagLine: string, region: Region) => {
+
+        setRecentSearches((prev) => {
+
+            const filtered = prev.filter(
+                (item) =>
+                    !(
+                        item.name.toLowerCase() === gameName.toLowerCase() &&
+                        item.tag.toLowerCase() === tagLine.toLowerCase() &&
+                        item.region === region
+                    )
+            );
+
+            return [
+                { name: gameName, tag: tagLine, region, timestamp: Date.now() },
+                ...filtered,
+            ].slice(0, 5);
+        });
+    };
+
+    /* ====================================================== */
+
+    const handleSubmit = (e: React.FormEvent) => {
+
+        e.preventDefault();
+
+        if (!input.trim()) return;
+
+        let name = input;
+        let tag = selectedRegion as string;
+
+        if (input.includes("#")) {
+            [name, tag] = input.split("#");
+        } else if (input.includes("-")) {
+            [name, tag] = input.split("-");
         }
-      } catch (err) {
-        console.error("Search suggestion error", err);
-      } finally {
-        setLoadingSuggest(false);
-      }
-    }, DEBOUNCE_DELAY);
 
-    return () => clearTimeout(timer);
-  }, [input, selectedRegion]);
+        addToRecent(name, tag, selectedRegion);
 
-  const handleSuggestionClick = (s: { gameName: string; tagLine: string }) => {
-    addToRecent(s.gameName, s.tagLine, selectedRegion);
+        const fullQuery = input.includes("#")
+            ? input.replace("#", "-")
+            : `${input}-${selectedRegion}`;
 
-    const query = `${s.gameName}#${s.tagLine}`;
-    setInput(query);
-    setSuggestions([]);
+        if (onSearch) onSearch(fullQuery, selectedRegion);
+        else push(`/summoner/${selectedRegion}/${encodeURIComponent(fullQuery)}`);
 
-    const fullQuery = `${s.gameName}-${s.tagLine}`;
-    if (onSearch) {
-      onSearch(fullQuery, selectedRegion);
-    } else {
-      push(`/summoner/${selectedRegion}/${encodeURIComponent(fullQuery)}`);
-    }
-  };
+        setSuggestions([]);
+        setIsFocused(false);
+    };
 
-  const handleRecentClick = (r: RecentSearch) => {
-    const fullQuery = `${r.name}-${r.tag}`;
-    setInput(`${r.name}#${r.tag}`);
-    setSelectedRegion(r.region);
+    /* ====================================================== */
 
-    // Move to top of list
-    addToRecent(r.name, r.tag, r.region);
+    useEffect(() => {
 
-    if (onSearch) {
-      onSearch(fullQuery, r.region);
-    } else {
-      push(`/summoner/${r.region}/${encodeURIComponent(fullQuery)}`);
-    }
-    setIsFocused(false);
-  };
+        if (!input || input.length < 3) {
+            setSuggestions([]);
+            return;
+        }
 
-  const info = seasonInfo ? seasonInfo : CURRENT_SEASON_INFO;
+        const timer = setTimeout(async () => {
 
-  return (
-    <div className="relative overflow-hidden bg-[#050505] py-24 sm:py-32 border-b border-white/5">
-      <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-lol-hextech/10 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-lol-gold/5 rounded-full blur-[120px]"></div>
-        <div className="absolute inset-0 bg-hex-pattern opacity-5 mix-blend-overlay"></div>
-      </div>
+            setLoadingSuggest(true);
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-        <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-lol-gold/10 border border-lol-gold/20 text-lol-gold text-xs font-bold tracking-widest uppercase shadow-glow-gold">
-          {info ? `${info.season} ${info.split}` : 'Season 2025 Split 2'}
-        </div>
-        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl mb-8 font-display uppercase drop-shadow-2xl">
-          {t.heroTitle} <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-lol-gold via-lol-red to-lol-hextech drop-shadow-lg">
-            {t.heroHighlight}
-          </span>
-        </h1>
-        <p className="mt-6 max-w-2xl mx-auto text-lg text-gray-400 mb-12 font-light leading-relaxed">
-          {t.heroDesc}
-        </p>
+            try {
 
-        <form onSubmit={handleSubmit} className="relative max-w-2xl mx-auto group" ref={wrapperRef}>
-          <div className="absolute -inset-1 bg-gradient-to-r from-lol-gold/30 via-lol-hextech/30 to-lol-red/30 rounded-full blur-xl opacity-30 group-hover:opacity-60 transition duration-700 pointer-events-none"></div>
+                const res = await fetch(
+                    `/api/riot/search?query=${encodeURIComponent(input)}&region=${encodeURIComponent(selectedRegion)}`
+                );
 
-          <div className="relative flex items-center bg-[#121212] border border-white/10 rounded-full p-2 shadow-2xl transition-colors hover:border-lol-gold/30 z-30">
-            <div className="pl-5 pr-3">
-              <Search className="w-6 h-6 text-lol-gold" />
-            </div>
-            <input
-              type="text"
-              className="flex-grow bg-transparent border-none focus:ring-0 text-white placeholder-gray-600 px-2 py-4 text-lg font-medium outline-none"
-              placeholder={t.searchPlaceholder}
-              value={input}
-              onChange={handleInputChange}
-              onFocus={() => setIsFocused(true)}
-            />
-            <button
-              type="submit"
-              className="bg-lol-gold hover:bg-white text-black font-bold py-3.5 px-8 rounded-full shadow-[0_0_15px_rgba(200,170,110,0.4)] transition-all flex items-center gap-2 tracking-wide uppercase text-sm hover:scale-105 active:scale-95 cursor-pointer"
-            >
-              {loadingSuggest ? <div className="animate-spin w-4 h-4 border-2 border-black border-t-transparent rounded-full" /> : <>{t.go} <ArrowRight className="w-4 h-4" /></>}
-            </button>
-          </div>
+                if (res.ok) {
+                    const data = await res.json();
+                    setSuggestions(data.suggestions || []);
+                }
 
-          {/* Suggestions & Recent Searches Dropdown */}
-          {isFocused && (suggestions.length > 0 || (isStorageReady && recentSearches.length > 0)) && (
-            <div className="absolute left-0 right-0 top-[calc(100%+8px)] bg-[#121212] border border-white/10 rounded-2xl shadow-2xl text-left z-20 overflow-hidden animate-fadeIn">
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoadingSuggest(false);
+            }
 
-              {/* Suggestions */}
-              {suggestions.length > 0 && (
-                <div className="p-2">
-                  <div className="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Suggestions</div>
-                  {suggestions.map((s, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-3 transition-colors group/item"
-                      onClick={() => handleSuggestionClick(s)}
-                    >
-                      <div className="w-8 h-8 rounded-full bg-lol-hextech/20 flex items-center justify-center text-lol-hextech group-hover/item:bg-lol-hextech/30 transition-colors">
-                        <Search className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">{s.gameName}</div>
-                        <div className="text-gray-500 text-xs">#{s.tagLine}</div>
-                      </div>
-                    </button>
-                  ))}
+        }, 500);
+
+        return () => clearTimeout(timer);
+
+    }, [input, selectedRegion]);
+
+    /* ====================================================== */
+
+    return (
+        <div className="relative z-[2000] overflow-visible py-24 sm:py-32 border-b border-white/5">
+
+            <div className="relative z-[2100] max-w-4xl mx-auto px-4 text-center">
+
+                {/* Badge */}
+                <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-lol-gold/10 border border-lol-gold/20 text-lol-gold text-xs font-bold tracking-widest uppercase shadow-[0_0_40px_rgba(200,170,110,0.12)]">
+                    {info ? `${info.season} ${info.split}` : "Season 2025 Split 2"}
                 </div>
-              )}
 
-              {/* Recent Searches */}
-              {isStorageReady && recentSearches.length > 0 && (
-                <div className="p-2 border-t border-white/5">
-                  <div className="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider flex justify-between items-center">
-                    <span>Recent</span>
-                    <History className="w-3 h-3" />
-                  </div>
-                  {recentSearches.map((r, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg flex items-center justify-between group/item transition-colors"
-                      onClick={() => handleRecentClick(r)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-lol-gold/10 flex items-center justify-center text-lol-gold group-hover/item:bg-lol-gold/20 transition-colors">
-                          <History className="w-4 h-4" />
+                {/* Title */}
+                <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl mb-8 font-display uppercase">
+                    {t.heroTitle}
+                    <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-lol-gold to-lol-red">
+                        {t.heroHighlight}
+                    </span>
+                </h1>
+
+                <p className="mt-6 max-w-2xl mx-auto text-lg text-gray-400 mb-12 font-light">
+                    {t.heroDesc}
+                </p>
+
+                {/* FORM ROOT */}
+                <form
+                    ref={wrapperRef}
+                    onSubmit={handleSubmit}
+                    className="relative max-w-4xl mx-auto z-[2200]"
+                >
+
+                    {/* SEARCH BAR */}
+                    <div className="relative flex items-center rounded-full px-4 py-3 border border-lol-gold/50 bg-gradient-to-b from-[#0b0b0b] to-[#060606] backdrop-blur-xl shadow-[0_0_60px_rgba(0,0,0,0.6)]">
+
+                        {/* REGION SELECTOR */}
+                        <div className="relative z-[2300]">
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsRegionMenuOpen(prev => !prev);
+                                    setIsFocused(false);
+                                }}
+                                className="px-4 py-3 rounded-full flex items-center gap-2 bg-lol-gold text-[#050505] font-bold uppercase text-sm tracking-wider"
+                            >
+                                <span>{selectedRegion}</span>
+
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isRegionMenuOpen ? "rotate-180" : ""}`} />
+                            </button>
+
+                            {isRegionMenuOpen && (
+                                <div className="absolute left-0 top-full mt-3 w-36 z-[3000] backdrop-blur-xl bg-[#121212]/95 border border-white/10 rounded-2xl shadow-2xl p-2 animate-fadeIn">
+
+                                    {REGIONS.map(region => (
+                                        <button
+                                            key={region}
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedRegion(region);
+                                                setIsRegionMenuOpen(false);
+                                            }}
+                                            className={`
+                                            w-full px-4 py-2 text-xs font-bold flex items-center justify-between rounded-xl transition-all
+                                            ${selectedRegion === region
+                                                ? "text-lol-gold bg-white/5"
+                                                : "text-gray-400 hover:bg-white/5 hover:text-white"}
+                                            `}
+                                        >
+                                            <span>{region}</span>
+
+                                            {selectedRegion === region && (
+                                                <div className="w-1.5 h-1.5 rounded-full bg-lol-gold shadow-glow-gold" />
+                                            )}
+                                        </button>
+                                    ))}
+
+                                </div>
+                            )}
                         </div>
-                        <div>
-                          <div className="text-white font-medium">{r.name}</div>
-                          <div className="text-gray-500 text-xs">#{r.tag} • {r.region}</div>
-                        </div>
-                      </div>
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            className="p-1.5 rounded-full hover:bg-white/10 text-gray-500 hover:text-white opacity-0 group-hover/item:opacity-100 transition-all cursor-pointer focus:opacity-100 focus:outline-none"
-                            onClick={(e) => removeRecent(e as any, i)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') removeRecent(e as any, i);
+
+                        <div className="h-8 w-px bg-white/10 mx-6" />
+
+                        <Search className="w-6 h-6 text-gray-600 mr-4" />
+
+                        <input
+                            className="flex-grow bg-transparent outline-none border-none text-white text-xl font-medium placeholder:text-gray-600"
+                            placeholder={t.searchPlaceholder}
+                            value={input}
+                            onChange={e => setInput(e.target.value)}
+                            onFocus={() => {
+                                setIsFocused(true);
+                                setIsRegionMenuOpen(false);
                             }}
-                        >
-                            <X className="w-3 h-3" />
+                        />
+
+                        <button type="submit" className="px-6 py-3 rounded-full flex items-center gap-2 bg-gradient-to-r from-lol-gold to-[#e1b255] text-[#050505] font-bold uppercase text-sm border border-lol-gold/40 hover:brightness-105">
+                            <span>{t.go}</span>
+                            <ArrowRight className="w-5 h-5"/>
+                        </button>
+
+                    </div>
+
+                    {/* RECENT SEARCHES */}
+                    {isFocused && recentSearches.length > 0 && (
+                        <div className="absolute left-0 right-0 mt-4 z-[3000] bg-[#121212]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-3 animate-fadeIn">
+
+                            <div className="text-xs uppercase tracking-widest text-gray-500 mb-2 px-2">
+                                Recent Searches
+                            </div>
+
+                            <div className="space-y-1">
+                                {recentSearches.map((item, idx) => (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => {
+                                            const query = `${item.name}-${item.tag}`;
+                                            setInput(query);
+
+                                            if (onSearch)
+                                                onSearch(query, item.region);
+                                            else
+                                                push(`/summoner/${item.region}/${encodeURIComponent(query)}`);
+
+                                            setIsFocused(false);
+                                        }}
+                                        className="w-full flex justify-between items-center px-3 py-2 rounded-xl text-sm text-gray-300 hover:bg-white/5 transition"
+                                    >
+                                        <span>
+                                            {item.name}
+                                            <span className="text-gray-600">#{item.tag}</span>
+                                        </span>
+
+                                        <span className="text-xs text-lol-gold">
+                                            {item.region}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
+                    )}
 
-                    </button>
-                  ))}
-                </div>
-              )}
+                </form>
             </div>
-          )}
-        </form>
-
-        {/* Region Selector */}
-        <div className="mt-8 flex flex-wrap justify-center gap-2">
-          {REGIONS.map((r) => (
-            <RegionButton key={r} region={r} selectedRegion={selectedRegion} onSelect={setSelectedRegion} />
-          ))}
         </div>
-      </div>
-    </div>
-  );
+    );
 };
-
-

@@ -66,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({currentView, onNavigate,}) => {
     const isHome = currentView ? currentView === "home" : pathname === "/";
 
     return (
-        <nav className="sticky top-0 z-50 w-full bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
+        <nav className="sticky top-0 z-[2500] w-full bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-3 items-center h-20">
 
