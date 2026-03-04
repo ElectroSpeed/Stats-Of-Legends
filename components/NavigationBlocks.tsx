@@ -1,5 +1,6 @@
 'use client';
 
+import { Bot, Radio, Hammer } from "lucide-react";
 import React from 'react';
 import { useLanguage } from '@/app/LanguageContext';
 import { TRANSLATIONS } from '@/constants';
@@ -17,12 +18,30 @@ export const NavigationBlocks = () => {
             <div className="max-w-7xl mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
 
-                    <FeatureCard icon="⚡" title={translation.realTime} desc={translation.realTimeDesc} color="gold" />
+                    {/* Réel Temps */}
+                    <FeatureCard
+                        icon={<Radio className="w-12 h-12 mx-auto text-lol-gold" />}
+                        title={translation.realTime}
+                        desc={translation.realTimeDesc}
+                        color="gold"
+                    />
 
-                    <FeatureCard icon="🤖" title={translation.aiCoach} desc={translation.aiCoachDesc} color="amber" />
+                    {/* AI Coach */}
+                    <FeatureCard
+                        icon={<Bot className="w-12 h-12 mx-auto text-amber-500" />}
+                        title={translation.aiCoach}
+                        desc={translation.aiCoachDesc}
+                        color="amber"
+                    />
 
+                    {/* Builder */}
                     <SafeLink href="/builder" className="block h-full">
-                        <FeatureCard icon="⚔️" title="Builder Noxus" desc={translation.builderDesc} color="red" />
+                        <FeatureCard
+                            icon={<Hammer className="w-12 h-12 mx-auto text-lol-red" />}
+                            title="Builder Noxus"
+                            desc={translation.builderDesc}
+                            color="red"
+                        />
                     </SafeLink>
 
                 </div>
@@ -31,7 +50,12 @@ export const NavigationBlocks = () => {
     );
 };
 
-interface FeatureCardProps {icon: string;title: string;desc: string;color: 'gold' | 'red' | 'amber';}
+interface FeatureCardProps {
+    icon: React.ReactNode;
+    title: string;
+    desc: string;
+    color: 'gold' | 'red' | 'amber';
+}
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, desc, color }) => {
 
@@ -55,7 +79,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, desc, color }) =
 
     return (
         <div className={`relative h-full p-10 rounded-3xl bg-[#18181b] border transition-all duration-300 hover:-translate-y-3 group cursor-pointer ${colorMap[color]}`}>
-            <div className="text-5xl mb-6 transition-transform duration-300 group-hover:scale-110">
+            <div className="text-5xl mb-6">
                 {icon}
             </div>
 
