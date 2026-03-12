@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, ArrowRight, Globe } from "lucide-react";
+import { Search, ArrowRight, Earth } from "lucide-react";
 import { Region, SeasonInfo, Language } from "../../types";
 import { REGIONS, CURRENT_SEASON_INFO, TRANSLATIONS } from "../../constants";
 import { useSafeNavigation } from "../../hooks/useSafeNavigation";
@@ -16,12 +16,7 @@ interface SearchBarProps {
     size?: "medium" | "small";
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
-                                                        onSearch,
-                                                        seasonInfo,
-                                                        lang,
-                                                        size = "medium",
-                                                    }) => {
+export const SearchBar: React.FC<SearchBarProps> = ({onSearch, seasonInfo, lang, size = "medium",}) => {
     const isSmall = size === "small";
 
     const [input, setInput] = useState("");
@@ -52,7 +47,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     const containerPadding = isSmall ? "px-1 py-1" : "px-4 py-3";
 
     return (
-        <div className={`relative ${isSmall ? "pb-1 z-100" : "py-12 sm:py-16 z-100"}`}>
+        <div className={`relative ${isSmall ? "pb-1 z-100" : "sm:pb-16 z-100"}`}>
             <form
                 onSubmit={handleSubmit}
                 className={`relative mx-auto ${isSmall ? "max-w-[600px]" : "max-w-4xl"}`}
@@ -67,7 +62,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                         selected={selectedRegion}
                         onChange={setSelectedRegion}
                         options={REGIONS.map((r) => ({ label: r, value: r }))}
-                        buttonIcon={<Globe className={isSmall ? "w-2.5 h-2.5" : "w-4 h-4"} />}
+                        buttonIcon={<Earth className={isSmall ? "w-2.5 h-2.5" : "w-4 h-4"} />}
                         size={size}
                     />
 

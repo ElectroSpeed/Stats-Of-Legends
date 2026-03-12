@@ -66,15 +66,11 @@ export const Navbar: React.FC<NavbarProps> = ({currentView, onNavigate,}) => {
         <nav className="sticky top-0 z-[2500] w-full bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <div className="grid grid-cols-3 items-center pt-4 pb-2">
+                <div className="grid grid-cols-3 items-center pt-4 pb-4">
 
                     {/* LOGO */}
                     <div className="flex items-center justify-start shrink-0">
-                        <SafeLink
-                            href="/"
-                            onClick={(e) => handleNavClick(e, "home")}
-                            className="flex items-center gap-3 group"
-                        >
+                        <SafeLink href="/" onClick={(e) => handleNavClick(e, "home")} className="flex items-center gap-3 group">
                             <div className="relative w-12 h-12 flex items-center justify-center">
                                 <div className="absolute w-8 h-8 bg-lol-gold/25 rounded-full transition-all duration-500 group-hover:w-14 group-hover:h-14 group-hover:bg-lol-red/20 group-hover:blur-sm" />
                                 <div className="relative z-10 w-full h-full bg-[#121212] border border-lol-gold/30 rounded-2xl flex items-center justify-center group-hover:border-lol-red/50 transition-colors duration-300 shadow-glow-gold group-hover:shadow-glow-red">
@@ -124,9 +120,9 @@ export const Navbar: React.FC<NavbarProps> = ({currentView, onNavigate,}) => {
                     </div>
 
                 </div>
-                
+
                 {pathname !== "/" && (
-                    <div className="mt-1 mb-1">
+                    <div className="-mt-2 pb-2">
                         <SearchBar size="small" />
                     </div>
                 )}

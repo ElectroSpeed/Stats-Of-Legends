@@ -19,18 +19,7 @@ interface CustomButtonProps {
     size?: Size;
 }
 
-export const CustomButton: React.FC<CustomButtonProps> = ({
-                                                              text,
-                                                              iconLeft,
-                                                              iconRight,
-                                                              href,
-                                                              onClick,
-                                                              type = "button",
-                                                              variant = "goldGradient",
-                                                              className = "",
-                                                              fullWidth = false,
-                                                              size = "medium",
-                                                          }) => {
+export const CustomButton: React.FC<CustomButtonProps> = ({text, iconLeft, iconRight, href, onClick, type = "button", variant = "goldGradient", className = "", fullWidth = false, size = "medium",}) => {
 
     const base = `
         inline-flex items-center justify-center gap-2
@@ -41,7 +30,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
 
     const sizes: Record<Size, string> = {
         medium: "px-6 py-3 text-sm",
-        small: "px-3 py-1.5 text-[0.625rem]", // encore plus petit
+        small: "px-3 py-1.5 text-[0.625rem]",
     };
 
     const variants: Record<Variant, string> = {

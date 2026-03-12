@@ -9,18 +9,18 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ badgeText, title, highlight, description }) => {
     return (
-        <div className="relative z-[2000] overflow-visible pt-24 sm:pt-32">
-            <div className="relative z-[2100] max-w-4xl mx-auto px-4 text-center">
+        <section className="relative z-[2000] pt-30 pb-20">
+            <div className="max-w-7xl mx-auto px-4 text-center">
 
                 {/* Badge */}
                 {badgeText && (
-                    <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-lol-gold/10 border border-lol-gold/20 text-lol-gold text-xs font-bold tracking-widest uppercase shadow-[0_0_40px_rgba(200,170,110,0.12)]">
+                    <div className="inline-block mb-6 px-4 py-1.5 rounded-full bg-lol-gold/10 border border-lol-gold/20 text-lol-gold text-xs font-bold tracking-widest uppercase shadow-[0_0_40px_rgba(200,170,110,0.12)]">
                         {badgeText}
                     </div>
                 )}
 
                 {/* Title */}
-                <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl mb-8 font-display uppercase">
+                <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-6 font-display uppercase leading-tight">
                     {title}
                     {highlight && (
                         <>
@@ -33,12 +33,12 @@ const Hero: React.FC<HeroProps> = ({ badgeText, title, highlight, description })
                 </h1>
 
                 {/* Description */}
-                <p className="mt-6 max-w-2xl mx-auto text-lg text-gray-400 font-light">
+                <p className="max-w-2xl mx-auto text-lg text-gray-400 font-light">
                     {description}
                 </p>
 
             </div>
-        </div>
+        </section>
     );
 };
 
