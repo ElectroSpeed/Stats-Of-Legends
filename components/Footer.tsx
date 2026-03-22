@@ -7,119 +7,106 @@ import { useLanguage } from '../app/LanguageContext';
 import { TRANSLATIONS } from '../constants';
 
 export const Footer = () => {
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
+    const { lang } = useLanguage();
+    const translation = TRANSLATIONS[lang];
 
-  const TOAST_DURATION = 3000;
-  const ICON_SIZE = 18;
+    const handlePlaceholderClick = (e: React.MouseEvent, label: string) => {
+        e.preventDefault();
+        setToastMsg(`${label} ${translation.placeholderToast}`);
+        setTimeout(() => setToastMsg(null), 3000);
+    };
 
-  const handlePlaceholderClick = (e: React.MouseEvent, label: string) => {
-    e.preventDefault();
-    setToastMsg(`${label} ${t.placeholderToast}`);
-    setTimeout(() => setToastMsg(null), TOAST_DURATION);
-  };
+    return (
+        <footer className="mt-auto relative bg-lol-panel border-t border-white/5 text-gray-400">
+            {/* Toast */}
+            {toastMsg && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-lol-card border border-lol-gold text-white px-5 py-2 rounded-full shadow-lg z-50 text-xs flex items-center gap-2">
+                    <Info className="w-4 h-4 text-lol-gold" />
+                    {toastMsg}
+                </div>
+            )}
 
-  return (
-    <footer className="bg-[#080808] border-t border-white/5 pt-16 pb-8 mt-auto relative">
-      {/* Toast Notification */}
-      {toastMsg && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] border border-lol-gold text-white px-6 py-3 rounded-full shadow-[0_0_20px_rgba(200,170,110,0.2)] z-50 font-bold text-xs animate-fadeIn flex items-center gap-3">
-          <Info className="w-4 h-4 text-lol-gold" />
-          {toastMsg}
-        </div>
-      )}
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                {/* GRID PRINCIPAL */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+                    {/* COL 1 - BRAND */}
+                    <div className="col-span-1 lg:col-span-2">
+                        <h3 className="text-white text-xl font-bold uppercase mb-4 tracking-wider">
+                            {translation.footerTitle}
+                        </h3>
 
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          <div className="col-span-1 md:col-span-2">
-            <h3 className="uppercase font-bold text-white text-xl tracking-wider mb-4 uppercase">{t.footerTitle}</h3>
-            <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
-              {t.footerTagline}
-            </p>
-            <div className="flex gap-4 mt-6">
-              <SocialIcon icon={<Twitter size={ICON_SIZE} />} onClick={(e) => handlePlaceholderClick(e, 'Twitter')} />
-              <SocialIcon icon={<Github size={ICON_SIZE} />} onClick={(e) => handlePlaceholderClick(e, 'GitHub')} />
-              <SocialIcon icon={<Disc size={ICON_SIZE} />} onClick={(e) => handlePlaceholderClick(e, 'Discord')} />
+                        <p className="text-gray-500 text-sm max-w-md leading-relaxed">
+                            {translation.footerTagline}
+                        </p>
+
+                        <div className="flex gap-3 mt-6">
+                            <SocialIcon icon={<Twitter size={18} />} onClick={(e) => handlePlaceholderClick(e, 'Twitter')} />
+                            <SocialIcon icon={<Github size={18} />} onClick={(e) => handlePlaceholderClick(e, 'GitHub')} />
+                            <SocialIcon icon={<Disc size={18} />} onClick={(e) => handlePlaceholderClick(e, 'Discord')} />
+                        </div>
+                    </div>
+
+                    {/* COL 2 - NAV */}
+                    <div>
+                        <h4 className="text-white text-xs font-bold uppercase mb-4 tracking-widest">Navigation</h4>
+                        <ul className="space-y-2 text-sm text-gray-500">
+                            <li><SafeLink href="/" className="hover:text-lol-gold">{translation.navHome}</SafeLink></li>
+                            <li><SafeLink href="/builder" className="hover:text-lol-gold">{translation.navBuilder}</SafeLink></li>
+                            <li><SafeLink href="/leaderboard" className="hover:text-lol-gold">{translation.navLeaderboard}</SafeLink></li>
+                            <li>
+                                <button onClick={(e) => handlePlaceholderClick(e, 'API Status')} className="hover:text-lol-gold text-left">
+                                    {translation.apiStatus}
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* COL 3 - RESOURCES */}
+                    <div>
+                        <h4 className="text-white text-xs font-bold uppercase mb-4 tracking-widest">{translation.resources}</h4>
+                        <ul className="space-y-2 text-sm text-gray-500">
+                            <li>
+                                <a href="https://developer.riotgames.com/" target="_blank" rel="noreferrer" className="hover:text-lol-gold">
+                                    {translation.riotApi}
+                                </a>
+                            </li>
+                            <li>
+                                <button onClick={(e) => handlePlaceholderClick(e, 'Privacy Policy')} className="hover:text-lol-gold text-left">
+                                    {translation.privacyPolicy}
+                                </button>
+                            </li>
+                            <li>
+                                <button onClick={(e) => handlePlaceholderClick(e, 'Terms')} className="hover:text-lol-gold text-left">
+                                    {translation.termsOfService}
+                                </button>
+                            </li>
+                            <li>
+                                <button onClick={(e) => handlePlaceholderClick(e, 'Support')} className="hover:text-lol-gold text-left">
+                                    {translation.contactSupport}
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {/* COPYRIGHT */}
+                <div className="mt-12 pt-6 border-t border-white/5 grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    <p className="text-xs text-gray-600 lg:col-span-1">{translation.footerCopyright}</p>
+                    <p className="text-[10px] text-gray-700 leading-relaxed lg:col-start-3 lg:col-span-2 max-w-md">
+                        {translation.footerDisclaimer}
+                    </p>
+                </div>
             </div>
-          </div>
-
-          <div>
-            <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Navigation</h4>
-            <ul className="space-y-3 text-sm text-gray-500">
-              <li><SafeLink href="/" className="hover:text-lol-gold transition-colors">{t.navHome}</SafeLink></li>
-              <li><SafeLink href="/builder" className="hover:text-lol-gold transition-colors">{t.navBuilder}</SafeLink></li>
-              <li><SafeLink href="/leaderboard" className="hover:text-lol-gold transition-colors">{t.navLeaderboard}</SafeLink></li>
-              <li>
-                <button onClick={(e) => handlePlaceholderClick(e, 'API Status')} className="hover:text-lol-gold transition-colors text-left">
-                  {t.apiStatus}
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">{t.resources}</h4>
-            <ul className="space-y-3 text-sm text-gray-500">
-              <li><a href="https://developer.riotgames.com/" target="_blank" rel="noreferrer" className="hover:text-lol-gold transition-colors">{t.riotApi}</a></li>
-              <li>
-                <button onClick={(e) => handlePlaceholderClick(e, 'Privacy Policy')} className="hover:text-lol-gold transition-colors text-left">
-                  {t.privacyPolicy}
-                </button>
-              </li>
-              <li>
-                <button onClick={(e) => handlePlaceholderClick(e, 'Terms of Service')} className="hover:text-lol-gold transition-colors text-left">
-                  {t.termsOfService}
-                </button>
-              </li>
-              <li>
-                <button onClick={(e) => handlePlaceholderClick(e, 'Contact Support')} className="hover:text-lol-gold transition-colors text-left">
-                  {t.contactSupport}
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-white/5 pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-gray-700 font-mono">
-            {t.footerCopyright}
-          </p>
-          <p className="text-[10px] text-gray-700 max-w-2xl text-center md:text-right leading-relaxed">
-            {t.footerDisclaimer}
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
+        </footer>
+    );
 };
 
 const SocialIcon = ({ icon, onClick }: { icon: React.ReactNode; onClick: (e: React.MouseEvent) => void }) => (
     <button
         onClick={onClick}
-        className="
-      relative
-      w-10 h-10
-      rounded-full
-      bg-[#121212]
-      border border-white/10
-      flex items-center justify-center
-      text-gray-400
-      transition-all duration-300
-      cursor-pointer
-      group
-      overflow-hidden
-      hover:border-lol-gold/40
-      hover:text-lol-gold
-      hover:shadow-[0_0_15px_rgba(200,170,110,0.25)]
-    "
+        className="w-10 h-10 rounded-full bg-lol-card border border-white/10 flex items-center justify-center text-gray-400 hover:text-lol-gold hover:border-lol-gold/40 transition"
     >
-        {/* Glow */}
-        <span className="absolute inset-0 bg-lol-gold/10 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100"/>
-
-        {/* Icon */}
-        <span className="relative z-10">
-      {icon}
-    </span>
+        {icon}
     </button>
 );

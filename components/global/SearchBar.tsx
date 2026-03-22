@@ -6,8 +6,8 @@ import { Region, SeasonInfo, Language } from "../../types";
 import { REGIONS, CURRENT_SEASON_INFO, TRANSLATIONS } from "../../constants";
 import { useSafeNavigation } from "../../hooks/useSafeNavigation";
 import { useLanguage } from "../../app/LanguageContext";
-import { Selector } from "@/components/global/Selector";
-import { CustomButton } from "@/components/global/CustomButton";
+import { Selector } from "@/components/global/button/Selector";
+import { CustomButton } from "@/components/global/button/CustomButton";
 
 interface SearchBarProps {
     onSearch?: (query: string, region: Region) => void;
@@ -47,7 +47,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({onSearch, seasonInfo, lang,
     const containerPadding = isSmall ? "px-1 py-1" : "px-4 py-3";
 
     return (
-        <div className={`relative ${isSmall ? "pb-1 z-100" : "sm:pb-16 z-100"}`}>
+        <section className="relative z-[2000] pt-30 pb-20">
             <form
                 onSubmit={handleSubmit}
                 className={`relative mx-auto ${isSmall ? "max-w-[600px]" : "max-w-4xl"}`}
@@ -90,6 +90,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({onSearch, seasonInfo, lang,
                     />
                 </div>
             </form>
-        </div>
+        </section>
     );
 };

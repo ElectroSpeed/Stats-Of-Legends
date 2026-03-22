@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, ShieldHalf, BowArrow } from "lucide-react";
-import { Selector } from "@/components/global/Selector";
+import { Selector } from "@/components/global/button/Selector";
 import React from "react";
 
 interface TierListSearchBarProps {

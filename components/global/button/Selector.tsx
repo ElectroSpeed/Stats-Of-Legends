@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { getButtonClasses, Variant, Size } from "../button/ButtonStyles";
 
 interface SelectorOption<T> {
     label: string;
@@ -13,8 +14,8 @@ interface SelectorProps<T> {
     label?: string;
     className?: string;
     buttonIcon?: React.ReactNode;
-    buttonStyle?: "gold" | "small";
-    size?: "medium" | "small";
+    variant?: Variant;
+    size?: Size;
 }
 
 export function Selector<T extends string | number>({
@@ -24,7 +25,7 @@ export function Selector<T extends string | number>({
                                                         label,
                                                         className,
                                                         buttonIcon,
-                                                        buttonStyle = "gold",
+                                                        variant = "navbarGhost",
                                                         size = "medium",
                                                     }: SelectorProps<T>) {
     const [isOpen, setIsOpen] = useState(false);
@@ -32,15 +33,21 @@ export function Selector<T extends string | number>({
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+            if (
+                wrapperRef.current &&
+                !wrapperRef.current.contains(event.target as Node)
+            ) {
                 setIsOpen(false);
             }
         };
+
         const handleEscape = (event: KeyboardEvent) => {
             if (event.key === "Escape") setIsOpen(false);
         };
+
         document.addEventListener("mousedown", handleClickOutside);
         document.addEventListener("keydown", handleEscape);
+
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("keydown", handleEscape);
@@ -49,14 +56,19 @@ export function Selector<T extends string | number>({
 
     const currentOption = options.find((o) => o.value === selected);
 
-    const buttonClasses =
-        size === "small"
-            ? "flex items-center gap-1 px-2 py-1.5 rounded-full bg-[#121212] border border-white/10 text-[0.625rem] text-gray-400 hover:text-lol-gold hover:border-lol-gold/40 transition-all duration-300"
-            : "flex items-center px-4 py-3 rounded-full bg-[#121212] border border-white/10 text-gray-400 hover:text-lol-gold hover:border-lol-gold/40 transition-all duration-300";
+    const buttonClasses = getButtonClasses({
+        variant,
+        size,
+        className,
+    });
 
     return (
-        <div className={`relative ${className}`} ref={wrapperRef}>
-            {label && <div className="text-xs uppercase text-gray-400 mb-1">{label}</div>}
+        <div className="relative" ref={wrapperRef}>
+            {label && (
+                <div className="text-xs uppercase text-gray-400 mb-1">
+                    {label}
+                </div>
+            )}
 
             <button
                 type="button"
@@ -70,11 +82,14 @@ export function Selector<T extends string | number>({
                                 currentOption ? "text-lol-gold" : "text-gray-400"
                             }`}
                         >
-                            {buttonIcon}
-                        </span>
+              {buttonIcon}
+            </span>
                     )}
-                    <span className="whitespace-nowrap font-bold">{currentOption?.label}</span>
+                    <span className="whitespace-nowrap font-bold">
+            {currentOption?.label}
+          </span>
                 </div>
+
                 <ChevronDown
                     className={`w-3 h-3 ml-1 transition-transform duration-300 ${
                         isOpen ? "rotate-180" : ""
@@ -86,6 +101,7 @@ export function Selector<T extends string | number>({
                 <div className="absolute left-0 mt-2 w-max min-w-full bg-[#121212] border border-white/10 rounded-2xl shadow-2xl p-2 z-[9999] max-h-60 overflow-y-auto">
                     {options.map((option) => {
                         const isSelected = option.value === selected;
+
                         return (
                             <button
                                 key={option.value.toString()}
@@ -101,6 +117,7 @@ export function Selector<T extends string | number>({
                                 }`}
                             >
                                 <span className="truncate">{option.label}</span>
+
                                 {isSelected && (
                                     <span className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-lol-gold shadow-glow-gold" />
                                 )}

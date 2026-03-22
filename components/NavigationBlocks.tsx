@@ -16,7 +16,7 @@ export const NavigationBlocks = () => {
             <div className="absolute top-0 left-0 w-full h-px bg-lol-gold/40" />
 
             <div className="max-w-7xl mx-auto px-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 text-center">
 
                     {/* Réel Temps */}
                     <FeatureCard
@@ -34,8 +34,11 @@ export const NavigationBlocks = () => {
                         color="amber"
                     />
 
-                    {/* Builder */}
-                    <SafeLink href="/builder" className="block h-full">
+                    {/* Builder (centré en tablette) */}
+                    <SafeLink
+                        href="/builder"
+                        className="block h-full sm:col-span-2 lg:col-span-1 flex justify-center"
+                    >
                         <FeatureCard
                             icon={<Hammer className="w-12 h-12 mx-auto text-lol-red" />}
                             title="Builder Noxus"
@@ -78,7 +81,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, desc, color }) =
     };
 
     return (
-        <div className={`relative h-full p-10 rounded-3xl bg-[#18181b] border transition-all duration-300 hover:-translate-y-3 group cursor-pointer ${colorMap[color]}`}>
+        <div className={`relative h-full w-full max-w-sm mx-auto p-10 rounded-3xl bg-[#18181b] border transition-all duration-300 hover:-translate-y-3 group cursor-pointer ${colorMap[color]}`}>
             <div className="text-5xl mb-6">
                 {icon}
             </div>

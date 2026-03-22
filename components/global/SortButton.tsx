@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
-import { CustomButton } from "@/components/global/CustomButton";
+import { CustomButton } from "@/components/global/button/CustomButton";
 
 interface SortButtonProps {
     label: string;
