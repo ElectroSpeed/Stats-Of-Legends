@@ -9,8 +9,8 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ badgeText, title, highlight, description }) => {
     return (
-        <section className="relative z-[2000] pt-30 pb-20">
-            <div className="max-w-7xl mx-auto px-4 text-center">
+        <section className="relative py-25">
+            <div className="max-w-7xl mx-auto px-15 text-center">
 
                 {/* Badge */}
                 {badgeText && (

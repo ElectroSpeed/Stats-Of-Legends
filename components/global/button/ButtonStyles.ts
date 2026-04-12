@@ -1,12 +1,7 @@
-export type Variant = "goldGradient" | "navbarActive" | "navbarGhost";
+export type Variant = "gold" | "outline" | "classic";
 export type Size = "medium" | "small";
 
-export function getButtonClasses({
-                                     variant = "goldGradient",
-                                     size = "medium",
-                                     fullWidth = false,
-                                     className = "",
-                                 }: {
+export function getButtonClasses({variant = "gold", size = "medium", fullWidth = false, className = "",}: {
     variant?: Variant;
     size?: Size;
     fullWidth?: boolean;
@@ -25,18 +20,26 @@ export function getButtonClasses({
     };
 
     const variants: Record<Variant, string> = {
-        goldGradient: `
-      bg-gradient-to-r from-lol-gold to-[#e1b255]
+        
+        gold: `
+      bg-lol-gold
       text-[#050505]
-      border border-lol-gold/40
       hover:brightness-105
+      shadow-glow-gold
     `,
-        navbarActive: `
-      bg-lol-gold text-[#050505]
-      shadow-[0_0_15px_rgba(200,170,110,0.3)]
+
+        outline: `
+      border border-white/10
+      text-gray-400
+      bg-transparent
+      hover:text-white
+      hover:bg-white/5
     `,
-        navbarGhost: `
-      text-gray-400 hover:text-white
+
+        classic: `
+      text-gray-400
+      bg-transparent
+      hover:text-white
       hover:bg-white/5
     `,
     };

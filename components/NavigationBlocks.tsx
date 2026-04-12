@@ -11,11 +11,11 @@ export const NavigationBlocks = () => {
     const translation = TRANSLATIONS[lang];
 
     return (
-        <section className="relative bg-[#111111] py-28">
+        <section className="relative bg-[#111111] py-25">
 
-            <div className="absolute top-0 left-0 w-full h-px bg-lol-gold/40" />
+            <div className="absolute top-0 left-0 w-full h-px border-t border-white/10" />
 
-            <div className="max-w-7xl mx-auto px-4">
+            <div className="max-w-7xl mx-auto px-15">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 text-center">
 
                     {/* Réel Temps */}
@@ -34,7 +34,7 @@ export const NavigationBlocks = () => {
                         color="amber"
                     />
 
-                    {/* Builder (centré en tablette) */}
+                    {/* Builder */}
                     <SafeLink
                         href="/builder"
                         className="block h-full sm:col-span-2 lg:col-span-1 flex justify-center"
@@ -64,24 +64,24 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, desc, color }) =
 
     const colorMap = {
         gold: `
-            border-lol-gold/50
-            hover:border-lol-gold/70
+            border-lol-gold/80
+            hover:border-lol-gold
             hover:shadow-[0_0_90px_rgba(200,170,110,0.2)]
         `,
         amber: `
-            border-[#B85F43]/50
-            hover:border-[#B85F43]/80
+            border-[#FE9A00]/60
+            hover:border-[#FE9A00]/80
             hover:shadow-[0_0_90px_rgba(184,95,67,0.25)]
         `,
         red: `
-            border-lol-red/50
-            hover:border-lol-red/70
+            border-lol-red/80
+            hover:border-lol-red
             hover:shadow-[0_0_90px_rgba(194,48,48,0.2)]
         `
     };
 
     return (
-        <div className={`relative h-full w-full max-w-sm mx-auto p-10 rounded-3xl bg-[#18181b] border transition-all duration-300 hover:-translate-y-3 group cursor-pointer ${colorMap[color]}`}>
+        <div className={`relative h-full w-full max-w-sm mx-auto p-10 rounded-3xl bg-[#18181b] border-2 transition-all duration-300 hover:-translate-y-3 group cursor-pointer ${colorMap[color]}`}>
             <div className="text-5xl mb-6">
                 {icon}
             </div>

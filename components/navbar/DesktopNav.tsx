@@ -11,7 +11,7 @@ export const DesktopNav = ({ items, isActive, onNavigate }) => {
                     onClick={(e) => onNavigate(e, item.key)}
                     text={item.label}
                     iconLeft={item.icon}
-                    variant={isActive(item.key, item.href) ? "navbarActive" : "navbarGhost"}
+                    variant={isActive(item.key, item.href) ? "gold" : "classic"}
                 />
             ))}
         </div>

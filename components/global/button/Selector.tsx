@@ -18,16 +18,7 @@ interface SelectorProps<T> {
     size?: Size;
 }
 
-export function Selector<T extends string | number>({
-                                                        options,
-                                                        selected,
-                                                        onChange,
-                                                        label,
-                                                        className,
-                                                        buttonIcon,
-                                                        variant = "navbarGhost",
-                                                        size = "medium",
-                                                    }: SelectorProps<T>) {
+export function Selector<T extends string | number>({options, selected, onChange, label, className, buttonIcon, variant = "outline", size = "medium",}: SelectorProps<T>) {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -70,35 +61,19 @@ export function Selector<T extends string | number>({
                 </div>
             )}
 
-            <button
-                type="button"
-                onClick={() => setIsOpen((prev) => !prev)}
-                className={buttonClasses}
-            >
+            <button type="button" onClick={() => setIsOpen((prev) => !prev)} className={buttonClasses}>
                 <div className="flex items-center gap-1">
                     {buttonIcon && (
-                        <span
-                            className={`flex-shrink-0 ${
-                                currentOption ? "text-lol-gold" : "text-gray-400"
-                            }`}
-                        >
-              {buttonIcon}
-            </span>
+                        <span className={`flex-shrink-0 ${currentOption ? "text-lol-gold" : "text-gray-400"}`}>{buttonIcon}</span>
                     )}
-                    <span className="whitespace-nowrap font-bold">
-            {currentOption?.label}
-          </span>
+                    <span className="whitespace-nowrap font-bold">{currentOption?.label}</span>
                 </div>
 
-                <ChevronDown
-                    className={`w-3 h-3 ml-1 transition-transform duration-300 ${
-                        isOpen ? "rotate-180" : ""
-                    }`}
-                />
+                <ChevronDown className={`w-3 h-3 ml-1 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}/>
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 mt-2 w-max min-w-full bg-[#121212] border border-white/10 rounded-2xl shadow-2xl p-2 z-[9999] max-h-60 overflow-y-auto">
+                <div className="absolute left-0 mt-2 w-max min-w-full bg-[#121212] border border-white/10 rounded-2xl shadow-2xl pt-2 px-2 z-[150] max-h-60 overflow-y-auto">
                     {options.map((option) => {
                         const isSelected = option.value === selected;
 
@@ -106,14 +81,9 @@ export function Selector<T extends string | number>({
                             <button
                                 key={option.value.toString()}
                                 type="button"
-                                onClick={() => {
-                                    onChange(option.value);
-                                    setIsOpen(false);
-                                }}
-                                className={`w-full px-4 py-2 text-left rounded-xl text-sm font-bold flex items-center justify-between gap-3 whitespace-nowrap transition-colors ${
-                                    isSelected
-                                        ? "text-lol-gold bg-white/5"
-                                        : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                onClick={() => {onChange(option.value);setIsOpen(false);}}
+                                className={`w-full px-4 py-2 mb-2 text-left rounded-xl text-sm font-bold flex items-center justify-between gap-3 whitespace-nowrap transition-colors ${
+                                    isSelected ? "text-lol-gold bg-white/5" : "text-gray-400 hover:bg-white/5 hover:text-white"
                                 }`}
                             >
                                 <span className="truncate">{option.label}</span>

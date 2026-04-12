@@ -17,18 +17,7 @@ interface CustomButtonProps {
     size?: Size;
 }
 
-export const CustomButton: React.FC<CustomButtonProps> = ({
-                                                              text,
-                                                              iconLeft,
-                                                              iconRight,
-                                                              href,
-                                                              onClick,
-                                                              type = "button",
-                                                              variant = "goldGradient",
-                                                              className = "",
-                                                              fullWidth = false,
-                                                              size = "medium",
-                                                          }) => {
+export const CustomButton: React.FC<CustomButtonProps> = ({text, iconLeft, iconRight, href, onClick, type = "button", variant = "gold", className = "", fullWidth = false, size = "medium",}) => {
     const buttonClasses = getButtonClasses({
         variant,
         size,
