@@ -6,27 +6,52 @@ interface TierBadgeProps {
 }
 
 export const TierBadge: React.FC<TierBadgeProps> = ({ tier, size = 'md' }) => {
+
     const getColors = (t: string) => {
         switch (t) {
-            case 'S+': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]';
-            case 'S': return 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.3)]';
-            case 'A+': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50';
-            case 'A': return 'bg-green-500/20 text-green-400 border-green-500/50';
-            case 'B': return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
-            default: return 'bg-gray-700/20 text-gray-500 border-gray-700/50';
+            case 'S+':
+                return 'bg-gradient-to-br from-rose-500 to-red-600 border-red-700';
+            case 'S':
+                return 'bg-gradient-to-br from-orange-400 to-orange-600 border-orange-700';
+            case 'A+':
+                return 'bg-gradient-to-br from-amber-400 to-yellow-500 border-yellow-600';
+            case 'A':
+                return 'bg-gradient-to-br from-emerald-400 to-green-600 border-green-700';
+            case 'B':
+                return 'bg-gradient-to-br from-sky-400 to-blue-600 border-blue-700';
+            case 'C':
+                return 'bg-gradient-to-br from-violet-500 to-purple-700 border-purple-800';
+            default:
+                return 'bg-gradient-to-br from-gray-600 to-gray-800 border-gray-900';
         }
     };
 
     const getSize = (s: string) => {
         switch (s) {
-            case 'sm': return 'text-xs px-2 py-0.5';
-            case 'lg': return 'text-xl px-4 py-2';
-            default: return 'text-sm px-3 py-1';
+            case 'sm':
+                return 'w-7 h-7 text-xs';
+            case 'lg':
+                return 'w-12 h-12 text-lg';
+            default:
+                return 'w-9 h-9 text-sm';
         }
     };
 
     return (
-        <span className={`font-display font-bold rounded border ${getColors(tier)} ${getSize(size)} backdrop-blur-sm`}>
+        <span
+            className={`
+                flex items-center justify-center
+                rounded-full
+                border-2
+                font-bold
+                text-white
+                tracking-wide
+                hover:scale-110
+                transition-transform
+                ${getColors(tier)}
+                ${getSize(size)}
+            `}
+        >
             {tier}
         </span>
     );
