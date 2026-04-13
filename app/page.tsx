@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Hero from '../components/global/Hero';
 import { SearchBar } from '../components/global/SearchBar';
 import { NavigationBlocks } from '../components/NavigationBlocks';
@@ -15,8 +15,18 @@ export default function Home() {
 
     return (
         <div>
-            <Hero badgeText={info ? `${info.season} ${info.split}` : "Season 2025 Split 2"} title={t.heroTitle} highlight={t.heroHighlight} description={t.heroDesc}/>
-            <SearchBar/>
+            <Hero
+                badgeText={info ? `${info.season} ${info.split}` : "Season 2025 Split 2"}
+                title={t.heroTitle}
+                highlight={t.heroHighlight}
+                description={t.heroDesc}
+            />
+
+            {/* ✅ FIX ICI */}
+            <Suspense fallback={<div className="h-20" />}>
+                <SearchBar />
+            </Suspense>
+
             <NavigationBlocks />
         </div>
     );
