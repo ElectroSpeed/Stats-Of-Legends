@@ -33,7 +33,13 @@ const LANGUAGES: Language[] = ["FR", "EN", "ES", "KR"];
 const CURRENT_YEAR_SHORT = "25";
 const CURRENT_SEASON = "15";
 
-export const Navbar = ({ currentView, onNavigate }) => {
+/* ✅ FIX: props optionnelles */
+type NavbarProps = {
+    currentView?: string;
+    onNavigate?: (view: string) => void;
+};
+
+export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
     const { pathname } = useSafeNavigation();
     const { lang: currentLang, setLang: setCurrentLang } = useLanguage();
     const t = TRANSLATIONS[currentLang];
@@ -48,13 +54,13 @@ export const Navbar = ({ currentView, onNavigate }) => {
         return `${PATCH_URL_BASE}${season}-${patchNumber}-notes/`;
     }, []);
 
-    const handleNavClick = (e, view) => {
+    const handleNavClick = (e: React.MouseEvent, view: string) => {
         if (!onNavigate) return;
         e.preventDefault();
         onNavigate(view);
     };
 
-    const isActive = (key, href) => {
+    const isActive = (key: string, href: string) => {
         if (currentView) return currentView === key;
         return pathname === href;
     };
@@ -70,7 +76,6 @@ export const Navbar = ({ currentView, onNavigate }) => {
         <>
             <nav className="sticky top-0 z-[100] w-full bg-[#111111]/90 backdrop-blur-xl border-b border-white/10">
                 <div className="max-w-7xl mx-auto px-[15px]">
-
                     <div className="flex items-center justify-between py-4">
 
                         {/* LOGO */}
@@ -145,7 +150,7 @@ export const Navbar = ({ currentView, onNavigate }) => {
                     {/* BACKDROP */}
                     <div
                         className={`fixed top-0 left-0 w-screen h-screen bg-black/40 transition-opacity duration-300 ${
-                            open ? "opacity-100" : "opacity-0 pointer-events-none"
+                            openSearch ? "opacity-100" : "opacity-0 pointer-events-none"
                         }`}
                         onClick={() => setOpenSearch(false)}
                     />
@@ -153,7 +158,7 @@ export const Navbar = ({ currentView, onNavigate }) => {
                     {/* PANEL */}
                     <div className="absolute top-20 left-0 w-full p-4 sm:p-6 z-[150] animate-in fade-in slide-in-from-top-4 duration-200">
                         <div className="mx-auto max-w-4xl">
-                                <SearchBar />
+                            <SearchBar />
                         </div>
                     </div>
                 </div>
