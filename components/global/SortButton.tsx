@@ -37,7 +37,7 @@ export const SortButton: React.FC<SortButtonProps> = ({label, columnKey, sortabl
         <CustomButton
             text={label}
             iconRight={renderIcon()}
-            variant="navbarGhost"
+            variant="classic"
             size="small"
             onClick={() => sortable && onSort(columnKey)}
             className={`!uppercase !font-bold${isSorted ? "text-white bg-white/10" : "text-gray-400"}`}
