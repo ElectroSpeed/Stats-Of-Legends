@@ -24,7 +24,7 @@ import { CustomButton } from "./global/button/CustomButton";
 import { DesktopNav } from "./navbar/DesktopNav";
 import { MobileMenu } from "./navbar/MobileMenu";
 import { PatchIndicator } from "./navbar/PatchIndicator";
-import { SearchBar } from "./global/SearchBar";
+import { HomeSearchBar } from "./global/HomeSearchBar";
 
 const PATCH_URL_BASE =
     "https://www.leagueoflegends.com/fr-fr/news/game-updates/patch-";
@@ -158,7 +158,7 @@ export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
                     {/* PANEL */}
                     <div className="absolute top-20 left-0 w-full p-4 sm:p-6 z-[150] animate-in fade-in slide-in-from-top-4 duration-200">
                         <div className="mx-auto max-w-4xl">
-                            <SearchBar />
+                            <HomeSearchBar />
                         </div>
                     </div>
                 </div>

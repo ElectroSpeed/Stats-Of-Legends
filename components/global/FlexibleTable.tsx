@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { SortButton } from "@/components/global/SortButton";
 
 export interface Column<T> {
     key: string;
@@ -16,19 +15,18 @@ interface FlexibleTableProps<T> {
     columns: Column<T>[];
     data: T[];
     defaultSort?: { key: string; direction: "asc" | "desc" };
+    maxItems?: number;
 }
 
 export function FlexibleTable<T>({
                                      columns,
                                      data,
                                      defaultSort,
+                                     maxItems = 8
                                  }: FlexibleTableProps<T>) {
-
-    const [sortConfig, setSortConfig] = useState<
-        { key: string; direction: "asc" | "desc" } | null
-    >(defaultSort ?? null);
-
-    /* ---------------------------- SORT HANDLER ---------------------------- */
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>(
+        defaultSort ?? null
+    );
 
     const handleSort = (columnKey: string) => {
         const column = columns.find((c) => c.key === columnKey);
@@ -48,135 +46,105 @@ export function FlexibleTable<T>({
         });
     };
 
-    /* ----------------------------- SORT LOGIC ----------------------------- */
-
     const sortedData = useMemo(() => {
         if (!sortConfig) return data;
-
         const column = columns.find((c) => c.key === sortConfig.key);
         if (!column) return data;
 
         return [...data].sort((a: any, b: any) => {
             const first = a[column.key];
             const second = b[column.key];
-
             if (first == null) return 1;
             if (second == null) return -1;
-
             if (typeof first === "number" && typeof second === "number") {
-                return sortConfig.direction === "asc"
-                    ? first - second
-                    : second - first;
+                return sortConfig.direction === "asc" ? first - second : second - first;
             }
-
             const result = String(first).localeCompare(String(second));
-
             return sortConfig.direction === "asc" ? result : -result;
         });
     }, [data, sortConfig, columns]);
 
-    /* ------------------------------ RENDER -------------------------------- */
+    const gridLayout = {
+        display: 'grid',
+        gridTemplateColumns: `repeat(${columns.length}, minmax(160px, 1fr))`,
+        minWidth: "100%",
+    };
 
     return (
-        <div className="overflow-x-auto w-full bg-[#121212] border border-lol-gold/40 rounded-[2rem] shadow-2xl p-6 text-sm">
+        <div className="w-full bg-[#111111] border border-white/10 rounded-[2rem] shadow-2xl p-6 overflow-hidden">
 
-            <table
-                className="w-full text-center border-separate"
-                style={{ borderSpacing: "0 0.5rem" }}
-            >
+            {/* Scroll horizontal unique */}
+            <div className="overflow-x-auto pb-4 custom-scrollbar-horizontal">
 
-                {/* HEADER */}
+                <div className="min-w-full w-max">
 
-                <thead>
-                <tr className="bg-[#181818]">
-
-                    {columns.map((col, index) => (
-                        <th
-                            key={col.key}
-                            className={`
-                                py-3 px-3 font-bold uppercase whitespace-nowrap
-                                ${index === 0 ? "rounded-l-2xl" : ""}
-                                ${index === columns.length - 1 ? "rounded-r-2xl" : ""}
-                            `}
-                        >
-                            <div className="flex justify-center">
-
-                                <SortButton
-                                    label={col.label}
-                                    columnKey={col.key}
-                                    sortable={col.sortable}
-                                    defaultDirection={col.defaultDirection}
-                                    activeSort={sortConfig}
-                                    onSort={handleSort}
-                                />
-
-                            </div>
-                        </th>
-                    ))}
-
-                </tr>
-                </thead>
-
-                {/* BODY */}
-
-                <tbody>
-
-                {sortedData.map((item, rowIndex) => (
-
-                    <tr
-                        key={rowIndex}
-                        className="hover:bg-white/5 transition-colors rounded-2xl overflow-hidden"
-                    >
-
-                        {columns.map((col, colIndex) => {
-
+                    {/* En-tête de tri */}
+                    <div style={gridLayout} className="px-3 mb-4">
+                        {columns.map((col) => {
                             const isSorted = sortConfig?.key === col.key;
 
-                            const value =
-                                col.key === "rank"
-                                    ? sortConfig?.direction === "desc"
-                                        ? sortedData.length - rowIndex
-                                        : rowIndex + 1
-                                    : col.render
-                                        ? col.render(item)
-                                        : (item as any)[col.key];
-
                             return (
-                                <td
+                                <div
                                     key={col.key}
-                                    className={`
-                                        py-3 px-3 relative text-center
-                                        bg-[#1c1c1c]
-                                        ${col.className ?? ""}
-                                        ${colIndex === 0 ? "rounded-l-2xl" : ""}
-                                        ${colIndex === columns.length - 1 ? "rounded-r-2xl" : ""}
-                                    `}
+                                    className={`flex items-center px-4 justify-center ${col.sortable ? "cursor-pointer group/header" : ""}`}
+                                    onClick={() => col.sortable && handleSort(col.key)}
                                 >
-
-                                    {isSorted && (
-                                        <div className="absolute inset-0 bg-white/10 rounded-2xl z-0" />
-                                    )}
-
-                                    <div
-                                        className={`
-                                            relative z-10 flex justify-center items-center font-semibold
-                                            ${isSorted ? "text-white" : "text-gray-400"}
-                                        `}
-                                    >
-                                        {value}
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${isSorted ? "text-lol-gold" : "text-gray-300"}`}>
+                                            {col.label}
+                                        </span>
+                                        {col.sortable && (
+                                            <div className={`flex flex-col -space-y-1 ${isSorted ? "opacity-100" : "opacity-20"}`}>
+                                                <svg className={`w-2 h-2 ${isSorted && sortConfig.direction === "asc" ? "text-lol-gold" : "text-gray-400"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h16z" /></svg>
+                                                <svg className={`w-2 h-2 ${isSorted && sortConfig.direction === "desc" ? "text-lol-gold" : "text-gray-400"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l8-8H4z" /></svg>
+                                            </div>
+                                        )}
                                     </div>
-
-                                </td>
+                                </div>
                             );
                         })}
+                    </div>
 
-                    </tr>
-                ))}
+                    {/* Zone de défilement vertical remise à droite */}
+                    <div
+                        className="overflow-y-auto pr-2 custom-scrollbar scroll-smooth"
+                        style={{ maxHeight: `calc(${maxItems} * 4.8rem)` }}
+                    >
+                        <div className="space-y-3">
+                            {sortedData.map((item, rowIndex) => (
+                                <div key={rowIndex} style={gridLayout} className="group flex items-stretch">
+                                    {columns.map((col, colIndex) => {
+                                        const isSorted = sortConfig?.key === col.key;
+                                        const isCentered = col.className?.includes("text-center");
 
-                </tbody>
+                                        const value = (col.key === "rank" || col.key === "absoluteRank")
+                                            ? rowIndex + 1
+                                            : col.render ? col.render(item) : (item as any)[col.key];
 
-            </table>
-
+                                        return (
+                                            <div
+                                                key={col.key}
+                                                className={`
+                                                    py-4 px-4 flex items-center relative bg-[#181818] border-y border-white/5
+                                                    ${isCentered ? "justify-center" : "justify-start"}
+                                                    ${colIndex === 0 ? "border-l border-white/5 rounded-l-2xl" : ""}
+                                                    ${colIndex === columns.length - 1 ? "border-r border-white/5 rounded-r-2xl" : ""}
+                                                    ${col.className ?? ""}
+                                                `}
+                                            >
+                                                {isSorted && <div className="absolute inset-0 bg-white/[0.02] pointer-events-none" />}
+                                                <div className={`relative z-10 font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis ${isSorted ? "text-lol-gold" : "text-gray-300"}`}>
+                                                    {value}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

@@ -8,9 +8,10 @@ import Link from "next/link";
 import Hero from "@/components/global/Hero";
 import { Loader2 } from "lucide-react";
 import { RANK_EMBLEMS } from "@/constants";
-import { getProfileIconUrl, getChampionIconUrl } from "@/utils/ddragon";
+import { getProfileIconUrl } from "@/utils/ddragon";
 import { formatRank } from "@/utils/formatUtils";
 import { LeaderboardEntry } from "@/types";
+import { LeaderboardSearchBar } from "@/components/leaderboard/LeaderboardSearchBar";
 
 // Interface des props (optionnels)
 interface LeaderboardPageProps {
@@ -23,6 +24,7 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
     // Valeurs par défaut
     const region = props.region ?? "EUW1";
     const [tier, setTier] = useState(props.tier ?? "ALL");
+    const [searchQuery, setSearchQuery] = useState("");
     const mePuuid = props.mePuuid ?? "";
 
     const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -59,28 +61,18 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
         return () => observer.disconnect();
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    // Loading/Error
-    if (status === "pending") {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-lol-gold" />
-            </div>
-        );
-    }
-    if (status === "error") {
-        return (
-            <div className="min-h-screen flex items-center justify-center text-red-500">
-                Error loading leaderboard.
-            </div>
-        );
-    }
-
     // Flatten pages et ajouter absoluteRank
     const allPlayers: LeaderboardEntry[] = data?.pages.flatMap((page: any) => page.players) || [];
-    const enrichedData = allPlayers.map((player, index) => ({
-        ...player,
-        absoluteRank: index + 1,
-    }));
+
+    // Filtrage local basé sur la barre de recherche
+    const enrichedData = allPlayers
+        .filter((player) =>
+            player.summonerName.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .map((player, index) => ({
+            ...player,
+            absoluteRank: index + 1,
+        }));
 
     // Colonnes FlexibleTable
     const columns: Column<any>[] = [
@@ -152,8 +144,8 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
             className: "text-center",
             render: (player) => (
                 <span className={player.winrate >= 50 ? "text-lol-win" : "text-lol-loss"}>
-          {Math.round(player.winrate)}%
-        </span>
+                    {Math.round(player.winrate)}%
+                </span>
             ),
         },
         {
@@ -164,17 +156,32 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
             className: "text-center",
             render: (player) => (
                 <span className="text-xs font-bold text-lol-gold text-center">
-          {player.legendScore > 0 ? player.legendScore.toFixed(1) : "-"}
-        </span>
+                    {player.legendScore > 0 ? player.legendScore.toFixed(1) : "-"}
+                </span>
             ),
         },
     ];
 
-    // Liste des tiers pour filtres
     const TIERS = ["ALL", "CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "PLATINUM"];
 
+    // Loading/Error Views
+    if (status === "pending") {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-lol-gold" />
+            </div>
+        );
+    }
+    if (status === "error") {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-red-500">
+                Error loading leaderboard.
+            </div>
+        );
+    }
+
     return (
-        <div>
+        <div className="pb-20">
             {/* Hero */}
             <Hero
                 badgeText={`${region} RANKINGS`}
@@ -182,27 +189,25 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
                 description={`The best players in ${region}. Rise to the top and become a Legend.`}
             />
 
-            <div className="max-w-7xl mx-auto px-4 space-y-6">
-                {/* Filtres de tier */}
-                <div className="flex gap-4 mb-6 overflow-x-auto pb-2">
-                    {TIERS.map(t => (
-                        <button
-                            key={t}
-                            className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all
-                        ${t === tier ? 'bg-lol-gold text-black' : 'border border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}
-                            onClick={() => setTier(t)}
-                        >
-                            {t}
-                        </button>
-                    ))}
-                </div>
+            {/* Nouveau composant de recherche unifié */}
+            <LeaderboardSearchBar
+                tier={tier}
+                setTier={setTier}
+                tiers={TIERS}
+                search={searchQuery}
+                setSearch={setSearchQuery}
+                placeholder="Search summoner in results..."
+            />
 
+            <div className="max-w-7xl mx-auto px-4 space-y-6">
                 {/* Table */}
-                <FlexibleTable
-                    columns={columns}
-                    data={enrichedData}
-                    defaultSort={{ key: "absoluteRank", direction: "asc" }}
-                />
+                <div className="bg-[#121212] border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl relative min-h-[400px]">
+                    <FlexibleTable
+                        columns={columns}
+                        data={enrichedData}
+                        defaultSort={{ key: "absoluteRank", direction: "asc" }}
+                    />
+                </div>
 
                 {/* Infinite scroll trigger */}
                 <div ref={loadMoreRef} className="flex justify-center py-6">

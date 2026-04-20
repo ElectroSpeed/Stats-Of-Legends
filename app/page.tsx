@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react';
 import Hero from '../components/global/Hero';
-import { SearchBar } from '../components/global/SearchBar';
+import { HomeSearchBar } from '../components/global/HomeSearchBar';
 import { NavigationBlocks } from '../components/NavigationBlocks';
 import { CURRENT_SEASON_INFO, TRANSLATIONS } from '../constants';
 import { useLanguage } from '../app/LanguageContext';
@@ -24,7 +24,7 @@ export default function Home() {
 
             {/* ✅ FIX ICI */}
             <Suspense fallback={<div className="h-20" />}>
-                <SearchBar />
+                <HomeSearchBar />
             </Suspense>
 
             <NavigationBlocks />

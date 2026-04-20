@@ -10,30 +10,32 @@ export const TierBadge: React.FC<TierBadgeProps> = ({ tier, size = 'md' }) => {
     const getColors = (t: string) => {
         switch (t) {
             case 'S+':
-                return 'bg-gradient-to-br from-rose-500 to-red-600 border-red-700';
+                return 'border-red-600';
             case 'S':
-                return 'bg-gradient-to-br from-orange-400 to-orange-600 border-orange-700';
+                return 'border-orange-500';
             case 'A+':
-                return 'bg-gradient-to-br from-amber-400 to-yellow-500 border-yellow-600';
+                return 'border-yellow-500';
             case 'A':
-                return 'bg-gradient-to-br from-emerald-400 to-green-600 border-green-700';
+                return 'border-green-500';
             case 'B':
-                return 'bg-gradient-to-br from-sky-400 to-blue-600 border-blue-700';
+                return 'border-blue-500';
             case 'C':
-                return 'bg-gradient-to-br from-violet-500 to-purple-700 border-purple-800';
+                return 'border-purple-500';
+            case 'D':
+                return 'border-lol-red';
             default:
-                return 'bg-gradient-to-br from-gray-600 to-gray-800 border-gray-900';
+                return 'border-gray-600';
         }
     };
 
     const getSize = (s: string) => {
         switch (s) {
             case 'sm':
-                return 'w-7 h-7 text-xs';
+                return 'w-7 h-7 text-[10px]';
             case 'lg':
-                return 'w-12 h-12 text-lg';
+                return 'w-12 h-12 text-base';
             default:
-                return 'w-9 h-9 text-sm';
+                return 'w-9 h-9 text-xs';
         }
     };
 
@@ -41,13 +43,8 @@ export const TierBadge: React.FC<TierBadgeProps> = ({ tier, size = 'md' }) => {
         <span
             className={`
                 flex items-center justify-center
-                rounded-full
-                border-2
-                font-bold
-                text-white
-                tracking-wide
-                hover:scale-110
-                transition-transform
+                rounded-full border-2 bg-transparent
+                font-black tracking-widest text-white
                 ${getColors(tier)}
                 ${getSize(size)}
             `}

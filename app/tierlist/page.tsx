@@ -49,7 +49,8 @@ function TierListContent() {
                         width={32}
                         height={32}
                         alt={champion.name}
-                        className="rounded-full"
+                        className="rounded-full object-cover border-2 border-opacity-0 group-hover:border-opacity-50 transition-all"
+                        style={{ borderColor: "#C8AA6E" }}
                     />
 
                     <span
@@ -183,28 +184,11 @@ function TierListContent() {
                 roles={ROLES}
                 formatRank={formatRank}
             />
-
-            <div className="bg-[#121212] border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl relative min-h-[400px]">
-
-                {loading ? (
-
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-10">
-
-                        <div className="w-12 h-12 border-4 border-lol-gold border-t-transparent rounded-full animate-spin" />
-
-                    </div>
-
-                ) : (
-
-                    <FlexibleTable<ChampionTier>
-                        columns={columns}
-                        data={sortedData}
-                        defaultSort={{ key: 'rank', direction: 'asc' }}
-                    />
-
-                )}
-
-            </div>
+            <FlexibleTable<ChampionTier>
+                columns={columns}
+                data={sortedData}
+                defaultSort={{ key: 'rank', direction: 'asc' }}
+            />
         </div>
     );
 }
