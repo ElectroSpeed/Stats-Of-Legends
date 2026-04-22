@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import {
-    House,
-    Hammer,
-    Trophy,
-    ChartColumnIncreasing,
-    Globe,
-    Search
-} from "lucide-react";
+import {House, Hammer, Trophy, ChartColumnIncreasing, Globe, Search} from "lucide-react";
 
 import { Logo } from "./icons/Logo";
 
@@ -26,18 +19,13 @@ import { MobileMenu } from "./navbar/MobileMenu";
 import { PatchIndicator } from "./navbar/PatchIndicator";
 import { HomeSearchBar } from "./global/HomeSearchBar";
 
-const PATCH_URL_BASE =
-    "https://www.leagueoflegends.com/fr-fr/news/game-updates/patch-";
+const PATCH_URL_BASE = "https://www.leagueoflegends.com/fr-fr/news/game-updates/patch-";
 
 const LANGUAGES: Language[] = ["FR", "EN", "ES", "KR"];
 const CURRENT_YEAR_SHORT = "25";
 const CURRENT_SEASON = "15";
 
-/* ✅ FIX: props optionnelles */
-type NavbarProps = {
-    currentView?: string;
-    onNavigate?: (view: string) => void;
-};
+type NavbarProps = { currentView?: string; onNavigate?: (view: string) => void; };
 
 export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
     const { pathname } = useSafeNavigation();
@@ -75,30 +63,29 @@ export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
     return (
         <>
             <nav className="sticky top-0 z-[100] w-full bg-[#111111]/90 backdrop-blur-xl border-b border-white/10">
-                <div className="max-w-7xl mx-auto px-[15px]">
-                    <div className="flex items-center justify-between py-4">
-
-                        {/* LOGO */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-[15px]">
+                    <div className="flex items-center justify-between py-4 gap-2">
+                        
                         <SafeLink
                             href="/"
                             onClick={(e) => handleNavClick(e, "home")}
-                            className="flex items-center gap-3 group"
+                            className="flex items-center gap-2 sm:gap-3 group shrink-0"
                         >
-                            <div className="relative w-10 h-10 flex items-center justify-center">
-                                <Logo className="w-15 h-15 text-white group-hover:text-lol-red transition-colors" />
+                            <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                <Logo className="w-full h-full text-white group-hover:text-lol-gold transition-colors" />
                             </div>
 
-                            <div className="flex flex-col">
-                                <span className="font-bold text-lg text-white uppercase">
+                            <div className="flex flex-col leading-none">
+                                <span className="font-bold text-sm sm:text-lg text-white uppercase">
                                     Stats Of
                                 </span>
-                                <span className="font-bold text-lg tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-lol-gold to-lol-red uppercase">
+                                <span className="font-bold text-sm sm:text-lg tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-lol-gold to-lol-red uppercase">
                                     Legends
                                 </span>
                             </div>
                         </SafeLink>
 
-                        {/* NAV */}
+                        {/* NAV : Hidden on mobile */}
                         <div className="hidden lg:flex flex-1 justify-center">
                             <DesktopNav
                                 items={NAV_ITEMS}
@@ -106,21 +93,18 @@ export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
                                 onNavigate={handleNavClick}
                             />
                         </div>
-
-                        {/* RIGHT */}
-                        <div className="flex items-center gap-3">
-
-                            {/* SEARCH BUTTON */}
+                        
+                        <div className="flex items-center justify-end gap-2 sm:gap-3 shrink-0">
+                            
                             {pathname !== "/" && (
                                 <CustomButton
                                     onClick={() => setOpenSearch(true)}
-                                    iconLeft={<Search className="w-5 h-5" />}
+                                    iconLeft={<Search className="w-4 h-4 sm:w-5 h-5" />}
                                     variant="classic"
-                                    size="medium"
-                                    className="w-12 h-12 rounded-full flex items-center justify-center p-0"
+                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center p-0"
                                 />
                             )}
-
+                            
                             <PatchIndicator patch={CURRENT_PATCH} url={patchUrl} />
 
                             <div className="hidden lg:block w-28">
@@ -143,21 +127,21 @@ export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
                 </div>
             </nav>
 
-            {/* 🔍 SEARCH PANEL */}
+            {/* SEARCH PANEL */}
             {openSearch && (
                 <div className="fixed inset-0 z-[999]">
-
-                    {/* BACKDROP */}
                     <div
-                        className={`fixed top-0 left-0 w-screen h-screen bg-black/40 transition-opacity duration-300 ${
-                            openSearch ? "opacity-100" : "opacity-0 pointer-events-none"
-                        }`}
-                        onClick={() => setOpenSearch(false)}
+                        className="fixed inset-0 bg-black/40 animate-in fade-in duration-200"
+                        onMouseDown={() => setOpenSearch(false)}
                     />
-
-                    {/* PANEL */}
-                    <div className="absolute top-20 left-0 w-full p-4 sm:p-6 z-[150] animate-in fade-in slide-in-from-top-4 duration-200">
-                        <div className="mx-auto max-w-4xl">
+                    <div
+                        className="absolute top-20 left-0 w-full p-4 sm:p-6 z-[150] animate-in slide-in-from-top-4 duration-200"
+                        onMouseDown={() => setOpenSearch(false)}
+                    >
+                        <div
+                            className="mx-auto max-w-4xl"
+                            onMouseDown={(e) => e.stopPropagation()}
+                        >
                             <HomeSearchBar />
                         </div>
                     </div>

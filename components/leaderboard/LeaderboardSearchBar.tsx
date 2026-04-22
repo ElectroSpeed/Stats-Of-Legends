@@ -20,7 +20,8 @@ export const LeaderboardSearchBar = ({tier, setTier, tiers, search, setSearch, p
 
     return (
         <SearchContainer onSubmit={handleSubmit}>
-            <div className="flex-shrink-0 mb-2 sm:mb-0 flex justify-center sm:block">
+            {/* Conteneur corrigé : suppression du justify-center */}
+            <div className="flex-shrink-0 mb-2 sm:mb-0 w-full sm:w-auto">
                 <Selector
                     selected={tier}
                     onChange={setTier}
@@ -30,8 +31,8 @@ export const LeaderboardSearchBar = ({tier, setTier, tiers, search, setSearch, p
                     className="w-full sm:w-auto"
                 />
             </div>
-            
-            <div className="flex items-center flex-1 sm:px-3 py-2 sm:p-0">
+
+            <div className="flex items-center flex-1 sm:px-3 py-2 sm:p-0 w-full">
                 <div className="flex items-center w-full sm:bg-transparent bg-white/5 rounded-full px-6 py-3">
                     <Search className="w-5 h-5 text-gray-500 mr-3" />
                     <input

@@ -10,7 +10,7 @@ interface HeroProps {
 const Hero: React.FC<HeroProps> = ({ badgeText, title, highlight, description }) => {
     return (
         <section className="relative py-25">
-            <div className="max-w-7xl mx-auto px-15 text-center">
+            <div className="max-w-7xl mx-auto px-4 sm:px-15 text-center">
 
                 {/* Badge */}
                 {badgeText && (
@@ -20,7 +20,7 @@ const Hero: React.FC<HeroProps> = ({ badgeText, title, highlight, description })
                 )}
 
                 {/* Title */}
-                <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-6 font-display uppercase leading-tight">
+                <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 font-display uppercase leading-tight break-words">
                     {title}
                     {highlight && (
                         <>

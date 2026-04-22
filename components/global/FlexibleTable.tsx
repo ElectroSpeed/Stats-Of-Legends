@@ -71,46 +71,43 @@ export function FlexibleTable<T>({
     };
 
     return (
-        <div className="w-full bg-[#111111] border border-white/10 rounded-[2rem] shadow-2xl p-6 overflow-hidden">
+        <div className="w-full px-4">
+            <div className="hidden md:flex w-full bg-[#111111] border border-white/10 rounded-[2rem] shadow-2xl p-6 flex-col">
+                <div
+                    className="overflow-auto custom-scrollbar w-full relative"
+                    style={{ maxHeight: `calc(${maxItems} * 4.8rem + 4.5rem)` }}
+                >
+                    <div className="min-w-max w-full">
+                        <div
+                            style={gridLayout}
+                            className="sticky top-0 z-20 px-3 py-4 mb-4 bg-[#111111]"
+                        >
+                            {columns.map((col) => {
+                                const isSorted = sortConfig?.key === col.key;
 
-            {/* Scroll horizontal unique */}
-            <div className="overflow-x-auto pb-4 custom-scrollbar-horizontal">
-
-                <div className="min-w-full w-max">
-
-                    {/* En-tête de tri */}
-                    <div style={gridLayout} className="px-3 mb-4">
-                        {columns.map((col) => {
-                            const isSorted = sortConfig?.key === col.key;
-
-                            return (
-                                <div
-                                    key={col.key}
-                                    className={`flex items-center px-4 justify-center ${col.sortable ? "cursor-pointer group/header" : ""}`}
-                                    onClick={() => col.sortable && handleSort(col.key)}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <span className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${isSorted ? "text-lol-gold" : "text-gray-300"}`}>
-                                            {col.label}
-                                        </span>
-                                        {col.sortable && (
-                                            <div className={`flex flex-col -space-y-1 ${isSorted ? "opacity-100" : "opacity-20"}`}>
-                                                <svg className={`w-2 h-2 ${isSorted && sortConfig.direction === "asc" ? "text-lol-gold" : "text-gray-400"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h16z" /></svg>
-                                                <svg className={`w-2 h-2 ${isSorted && sortConfig.direction === "desc" ? "text-lol-gold" : "text-gray-400"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l8-8H4z" /></svg>
-                                            </div>
-                                        )}
+                                return (
+                                    <div
+                                        key={col.key}
+                                        className={`flex items-center px-4 mb-2 justify-center ${col.sortable ? "cursor-pointer group/header" : ""}`}
+                                        onClick={() => col.sortable && handleSort(col.key)}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${isSorted ? "text-lol-gold" : "text-gray-300"}`}>
+                                                {col.label}
+                                            </span>
+                                            {col.sortable && (
+                                                <div className={`flex flex-col -space-y-1 ${isSorted ? "opacity-100" : "opacity-20"}`}>
+                                                    <svg className={`w-2 h-2 ${isSorted && sortConfig.direction === "asc" ? "text-lol-gold" : "text-gray-400"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l-8 8h16z" /></svg>
+                                                    <svg className={`w-2 h-2 ${isSorted && sortConfig.direction === "desc" ? "text-lol-gold" : "text-gray-400"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l8-8H4z" /></svg>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
 
-                    {/* Zone de défilement vertical remise à droite */}
-                    <div
-                        className="overflow-y-auto pr-2 custom-scrollbar scroll-smooth"
-                        style={{ maxHeight: `calc(${maxItems} * 4.8rem)` }}
-                    >
-                        <div className="space-y-3">
+                        <div className="space-y-3 px-2 pb-2">
                             {sortedData.map((item, rowIndex) => (
                                 <div key={rowIndex} style={gridLayout} className="group flex items-stretch">
                                     {columns.map((col, colIndex) => {
@@ -142,6 +139,79 @@ export function FlexibleTable<T>({
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex md:hidden w-full bg-[#111111] border border-white/10 rounded-[2rem] shadow-2xl p-4 flex-col">
+                <div className="mb-4">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 block px-2">
+                        Trier par :
+                    </span>
+                    <div className="flex overflow-x-auto gap-2 pb-2 px-2 custom-scrollbar">
+                        {columns.filter(c => c.sortable).map(col => {
+                            const isSorted = sortConfig?.key === col.key;
+                            return (
+                                <button
+                                    key={col.key}
+                                    onClick={() => handleSort(col.key)}
+                                    className={`flex items-center gap-2 whitespace-nowrap px-4 py-2 rounded-xl border text-xs font-bold transition-colors ${
+                                        isSorted
+                                            ? 'border-lol-gold text-lol-gold bg-lol-gold/10'
+                                            : 'border-white/10 text-gray-300 bg-[#181818]'
+                                    }`}
+                                >
+                                    {col.label}
+                                    {isSorted && (
+                                        <span className="text-[10px] ml-1">
+                                            {sortConfig.direction === 'asc' ? '▲' : '▼'}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div
+                    className="overflow-auto custom-scrollbar w-full"
+                    style={{ maxHeight: `calc(${maxItems} * 4.8rem + 4.5rem)` }}
+                >
+                    <div className="flex flex-col space-y-4 pb-2 px-1">
+                        {sortedData.map((item, rowIndex) => (
+                            <div
+                                key={rowIndex}
+                                className="flex flex-col bg-[#181818] rounded-2xl border border-white/10 divide-y divide-white/10 overflow-hidden"
+                            >
+                                {columns.map((col) => {
+                                    const isSorted = sortConfig?.key === col.key;
+                                    const isCentered = col.className?.includes("text-center");
+
+                                    const value = (col.key === "rank" || col.key === "absoluteRank")
+                                        ? rowIndex + 1
+                                        : col.render ? col.render(item) : (item as any)[col.key];
+
+                                    return (
+                                        <div
+                                            key={col.key}
+                                            className={`
+                                                flex items-center justify-between
+                                                py-3 px-4
+                                                ${isCentered ? "text-center" : ""}
+                                                ${col.className ?? ""}
+                                            `}
+                                        >
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 mr-4">
+                                                {col.label}
+                                            </span>
+                                            <div className={`font-semibold text-sm whitespace-nowrap overflow-hidden text-ellipsis text-right ${isSorted ? "text-lol-gold" : "text-gray-300"}`}>
+                                                {value}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

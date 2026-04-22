@@ -22,7 +22,7 @@ export const TierBadge: React.FC<TierBadgeProps> = ({ tier, size = 'md' }) => {
             case 'C':
                 return 'border-purple-500';
             case 'D':
-                return 'border-lol-red';
+                return 'border-gray-600';
             default:
                 return 'border-gray-600';
         }
