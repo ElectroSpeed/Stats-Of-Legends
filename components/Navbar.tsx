@@ -19,11 +19,9 @@ import { MobileMenu } from "./navbar/MobileMenu";
 import { PatchIndicator } from "./navbar/PatchIndicator";
 import { HomeSearchBar } from "./global/HomeSearchBar";
 
-const PATCH_URL_BASE = "https://www.leagueoflegends.com/fr-fr/news/game-updates/patch-";
+const PATCH_URL_BASE = "https://www.leagueoflegends.com/fr-fr/news/game-updates/league-of-legends-patch-";
 
 const LANGUAGES: Language[] = ["FR", "EN", "ES", "KR"];
-const CURRENT_YEAR_SHORT = "25";
-const CURRENT_SEASON = "15";
 
 type NavbarProps = { currentView?: string; onNavigate?: (view: string) => void; };
 
@@ -33,14 +31,23 @@ export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
     const t = TRANSLATIONS[currentLang];
 
     const [openSearch, setOpenSearch] = useState(false);
+    const [livePatch, setLivePatch] = useState(CURRENT_PATCH);
+
+    React.useEffect(() => {
+        fetch('https://ddragon.leagueoflegends.com/api/versions.json')
+            .then(res => res.json())
+            .then(data => { if (data && data[0]) setLivePatch(data[0]); })
+            .catch(() => {});
+    }, []);
 
     const patchUrl = useMemo(() => {
-        const [seasonRaw, patchNumber] = CURRENT_PATCH.split(".");
+        const [seasonRaw, patchNumber] = livePatch.split(".");
         if (!seasonRaw || !patchNumber) return "#";
-        const season =
-            seasonRaw === CURRENT_SEASON ? CURRENT_YEAR_SHORT : seasonRaw;
-        return `${PATCH_URL_BASE}${season}-${patchNumber}-notes/`;
-    }, []);
+        
+        // Riot games Maps "16.x" to "26.x" (Year 26 instead of Season 16)
+        const yearMapped = String(Number(seasonRaw) + 10);
+        return `${PATCH_URL_BASE}${yearMapped}-${patchNumber}-notes/`;
+    }, [livePatch]);
 
     const handleNavClick = (e: React.MouseEvent, view: string) => {
         if (!onNavigate) return;
@@ -105,7 +112,7 @@ export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
                                 />
                             )}
                             
-                            <PatchIndicator patch={CURRENT_PATCH} url={patchUrl} />
+                            <PatchIndicator patch={livePatch} url={patchUrl} />
 
                             <div className="hidden lg:block w-28">
                                 <Selector

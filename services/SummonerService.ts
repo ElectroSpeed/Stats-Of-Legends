@@ -70,6 +70,7 @@ export class SummonerService {
                         summonerId: summoner.id,
                         updatedAt: new Date(),
                         revisionDate: summoner.revisionDate, // Save Riot's revisionDate
+                        views: { increment: 1 }, // Increase popularity ranking
                     },
                     create: {
                         puuid: puuid!,
@@ -81,6 +82,7 @@ export class SummonerService {
                         summonerId: summoner.id,
                         lastMatchFetch: null,
                         revisionDate: summoner.revisionDate, // Save Riot's revisionDate
+                        views: 1, // First view!
                     },
                     include: { ranks: true, snapshots: { orderBy: { timestamp: 'asc' } } },
                 });
