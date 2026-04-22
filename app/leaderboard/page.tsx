@@ -201,7 +201,7 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
 
             <div className="max-w-7xl mx-auto px-4 space-y-6">
                 {/* Table */}
-                <div className="bg-[#121212] border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl relative min-h-[400px]">
+                <div>
                     <FlexibleTable
                         columns={columns}
                         data={enrichedData}
