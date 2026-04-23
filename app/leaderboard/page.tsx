@@ -14,6 +14,7 @@ import { LeaderboardEntry } from "@/types";
 import { LeaderboardSearchBar } from "@/components/leaderboard/LeaderboardSearchBar";
 import { TableSkeleton } from "@/components/skeletons/TableSkeleton";
 import { TRANSLATIONS } from "@/constants";
+import { useLanguage } from "@/app/LanguageContext";
 
 // Interface des props (optionnels)
 interface LeaderboardPageProps {
@@ -30,7 +31,8 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
     const mePuuid = props.mePuuid ?? "";
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    const t = TRANSLATIONS.FR;
+    const { lang } = useLanguage();
+    const t = TRANSLATIONS[lang as keyof typeof TRANSLATIONS] || TRANSLATIONS.FR;
     const fetchLeaderboard = async ({ pageParam = 1 }) => {
         const url = `/api/leaderboard?region=${region}&tier=${tier}&page=${pageParam}`;
         const res = await fetch(url);
@@ -176,7 +178,7 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
             <Hero
                 badgeText={`${region} ${t.rankings || "RANKINGS"}`}
                 title={t.leaderboard || "Classement"}
-                description={`${t.leaderboardDesc1 || "Les meilleurs joueurs de"} ${region}${t.leaderboardDesc2 || ". Atteignez le sommet et devenez une Légende."}`}
+                description={t.leaderboardDesc ? t.leaderboardDesc.replace('{region}', region) : `Les meilleurs joueurs de ${region}. Atteignez le sommet et devenez une Légende.`}
             />
 
             {/* Nouveau composant de recherche unifi */}

@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { SummonerProfile, Match, HeatmapDay, DetailedChampionStats, Teammate } from '@/types';
+import { useLanguage } from '@/app/LanguageContext';
+import { TRANSLATIONS } from '@/constants';
 
 export function useSummonerData(region: string, summonerName: string) {
+    const { lang } = useLanguage();
+    const t = TRANSLATIONS[lang as keyof typeof TRANSLATIONS] || TRANSLATIONS.FR;
+
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [updateError, setUpdateError] = useState<string | null>(null);
@@ -48,7 +53,8 @@ export function useSummonerData(region: string, summonerName: string) {
                 setUpdateError('Impossible de mettre à jour les données : accès Riot API refusé (403).');
             } else if (e.message.startsWith('COOLDOWN_')) {
                 const minutes = e.message.split('_')[1];
-                setUpdateError(`Veuillez attendre ${minutes} minute(s) avant la prochaine mise à jour.`);
+                const cdMsg = t.updateCooldown ? t.updateCooldown.replace('{minutes}', minutes) : `Veuillez attendre ${minutes} minute(s) avant la prochaine mise à jour.`;
+                setUpdateError(cdMsg);
             } else if (e.message !== 'Fetch failed') { // Specific error handling already done in helper or generic fallback
                 setUpdateError('Échec de la mise à jour des données du joueur.');
             }

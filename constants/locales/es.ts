@@ -1,4 +1,6 @@
 export const ES = {
+    patchMeta: "PARCHE META",
+    updateCooldown: "Por favor espera {minutes} minuto(s) antes de la próxima actualización.",
     home: "Inicio",
     builder: "Constructor",
     leaderboard: "Clasificación",
@@ -149,6 +151,5 @@ export const ES = {
     counterPicksColumn: "Counter Picks",
     trendColumn: "Tendencia",
     metaTierList: "Tier List del Meta",
-    leaderboardDesc1: "Los mejores jugadores de",
-    leaderboardDesc2: ". Escala a la cima y conviértete en una Leyenda."
+    leaderboardDesc: "Los mejores jugadores de {region}. Escala a la cima y conviértete en una Leyenda."
 };

@@ -1,4 +1,6 @@
 export const EN = {
+    patchMeta: "PATCH META",
+    updateCooldown: "Please wait {minutes} minute(s) before the next update.",
     home: "Home",
     builder: "Builder",
     leaderboard: "Leaderboard",
@@ -149,6 +151,5 @@ export const EN = {
     counterPicksColumn: "Counter Picks",
     trendColumn: "Trend",
     metaTierList: "Meta Tier List",
-    leaderboardDesc1: "The best players in",
-    leaderboardDesc2: ". Rise to the top and become a Legend."
+    leaderboardDesc: "The best players in {region}. Rise to the top and become a Legend."
 };

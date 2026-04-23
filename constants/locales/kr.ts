@@ -1,4 +1,6 @@
 export const KR = {
+    patchMeta: "패치 메타",
+    updateCooldown: "다음 업데이트 전까지 {minutes}분 기다려 주세요.",
     home: "홈",
     builder: "빌더",
     leaderboard: "랭킹",
@@ -149,6 +151,5 @@ export const KR = {
     counterPicksColumn: "카운터 픽",
     trendColumn: "추세",
     metaTierList: "메타 티어 리스트",
-    leaderboardDesc1: "",
-    leaderboardDesc2: "의 최고 플레이어들. 정상에 올라 전설이 되세요."
+    leaderboardDesc: "{region} 최고의 플레이어. 정점에 도달하여 전설이 되십시오."
 };

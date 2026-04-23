@@ -173,7 +173,7 @@ function TierListContent() {
         <div className="max-w-7xl mx-auto space-y-8" suppressHydrationWarning>
 
             <Hero
-                badgeText="PATCH META"
+                badgeText={t.patchMeta || "PATCH META"}
                 title={t.metaTierList || "Meta Tier List"}
                 description={t.tierListDesc || "Les meilleurs champions du patch actuel. Analysé par win rate, pick rate et ban rate."}
             />
@@ -207,7 +207,7 @@ export default function TierListPage() {
     const { lang: language } = useLanguage();
     const t = TRANSLATIONS[language as keyof typeof TRANSLATIONS] || TRANSLATIONS.FR;
     return (
-        <Suspense fallback={<Hero badgeText="PATCH META" title={t.metaTierList || "Meta Tier List"} description={t.loading || "Loading..."} />}>
+        <Suspense fallback={<Hero badgeText={t.patchMeta || "PATCH META"} title={t.metaTierList || "Meta Tier List"} description={t.loading || "Loading..."} />}>
             <TierListContent />
         </Suspense>
     );
