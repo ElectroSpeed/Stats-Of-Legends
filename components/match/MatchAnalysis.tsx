@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Sparkles, Brain, Zap, Loader2 } from 'lucide-react';
 import { TRANSLATIONS } from '../../constants';
@@ -31,13 +30,13 @@ export const MatchAnalysis: React.FC<MatchAnalysisProps> = ({ analysis, loading,
                   <div className="flex flex-col items-center gap-1">
                      <span className="text-lol-hextech font-bold text-base flex items-center gap-2 uppercase tracking-wider">
                         <Zap className="w-4 h-4 fill-current" />
-                        AI Coach Thinking
+                        {t.aiCoachThinking || `${t.aiCoach} Thinking`}
                      </span>
                      <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
                         <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Gemini 3.0 Pro is analyzing replay data...</span>
+                        <span>{t.analyzingReplay || `${t.aiCoach} is analyzing replay data...`}</span>
                      </div>
-                     <span className="text-[10px] text-gray-600 font-mono mt-1">Budget: 32k tokens</span>
+                     <span className="text-[10px] text-gray-600 font-mono mt-1">{t.deepAnalysis || 'Deep analysis in progress'}</span>
                   </div>
                </div>
             </div>
@@ -45,7 +44,7 @@ export const MatchAnalysis: React.FC<MatchAnalysisProps> = ({ analysis, loading,
             <div className="bg-[#18181b] p-6 rounded-xl border border-lol-hextech/30 text-sm text-gray-300 font-light leading-relaxed relative overflow-hidden shadow-2xl">
                <div className="absolute top-0 right-0 w-48 h-48 bg-lol-hextech/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                <h4 className="text-lol-hextech font-bold uppercase tracking-wider text-xs mb-4 flex items-center gap-2 relative z-10 border-b border-lol-hextech/10 pb-2">
-                  <Sparkles className="w-4 h-4" /> Coach Analysis
+                  <Sparkles className="w-4 h-4" /> {t.aiCoachAnalysis || `${t.aiCoach} Analysis`}
                </h4>
                <div className="relative z-10 prose prose-invert max-w-none prose-p:text-gray-300 prose-strong:text-white prose-li:text-gray-300">
                   {(analysis || '').split('\n').map((line, i) => (

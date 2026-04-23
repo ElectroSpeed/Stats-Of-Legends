@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { ChampionTier } from '@/types';
 import { getTargetTiers } from '@/utils/tierUtils';
+import { DataDragonService } from '@/services/DataDragonService';
 
 export class TierListGenerationService {
 
@@ -8,9 +9,14 @@ export class TierListGenerationService {
         // Tier Logic
         const targetTiers = getTargetTiers(rank);
 
+        // Active Patch Logic
+        const latestPatch = await DataDragonService.getLatestPatch();
+        const currentPatch = latestPatch.split('.').slice(0, 2).join('.');
+
         // Construct Where Clause
         const whereClause: any = {
-            tier: { in: targetTiers }
+            tier: { in: targetTiers },
+            patch: currentPatch
         };
 
         if (role && role !== 'ALL') {
@@ -29,7 +35,10 @@ export class TierListGenerationService {
 
         // Get Total Matches for this Tier/Patch (Approximation using ScannedMatch)
         const totalMatches = await prisma.scannedMatch.count({
-            where: { tier: { in: targetTiers } }
+            where: { 
+                tier: { in: targetTiers },
+                patch: currentPatch 
+            }
         });
 
         // Aggregate Data
@@ -71,6 +80,7 @@ export class TierListGenerationService {
         const matchups = await prisma.matchupStat.findMany({
             where: {
                 tier: { in: targetTiers },
+                patch: currentPatch,
                 matches: { gte: 5 } // Minimum matches to be considered a counter
             }
         });

@@ -246,8 +246,6 @@ model MatchAnalysis {
 
 // --- Leaderboard Models ---
 
-// LeaderboardEntry REMOVED (Merged into SummonerRank)
-
 model LeaderboardStats {
   region       String   @id
   totalPlayers Int

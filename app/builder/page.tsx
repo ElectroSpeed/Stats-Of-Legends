@@ -10,6 +10,7 @@ import { Item, Champion, DummyStats, SelectedRunes } from '@/types';
 import { ItemCatalog } from '@/components/builder/ItemCatalog';
 import { BuilderGrid } from '@/components/builder/BuilderGrid';
 import { BuilderStats } from '@/components/builder/BuilderStats';
+import { BuilderSkeleton } from '@/components/skeletons/BuilderSkeleton';
 import { analyzeBuild } from '@/services/AIAnalysisService';
 
 const DEFAULT_DUMMY: DummyStats = {
@@ -31,7 +32,7 @@ export default function BuilderPage() {
     undo, redo, canUndo, canRedo, reset: resetHistory
   } = useHistory<(Item | null)[]>([null, null, null, null, null, null], MAX_HISTORY_SIZE);
 
-  const { champions, items } = useBuilderData();
+  const { champions, items, loading } = useBuilderData();
 
   const [currentChampion, setCurrentChampion] = useState<Champion | null>(null);
   const [championLevel, setChampionLevel] = useState<number>(DEFAULT_CHAMPION_LEVEL);
@@ -74,6 +75,10 @@ export default function BuilderPage() {
       setSelectedItems(newI);
     }
   };
+
+  if (loading) {
+    return <BuilderSkeleton />;
+  }
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto min-h-[calc(100vh-80px)] animate-fadeIn">

@@ -6,14 +6,19 @@ import { TierListSearchBar } from "@/components/tierlist/TierListSearchBar";
 import { useTierListData } from "@/hooks/useTierListData";
 import { FlexibleTable, Column } from "@/components/global/FlexibleTable";
 import { TierBadge } from "@/components/tierlist/TierBadge";
+import { TableSkeleton } from "@/components/skeletons/TableSkeleton";
 import Image from "next/image";
 import Link from "next/link";
 
 import { REGIONS, ROLES, RANKS, formatRank } from "@/constants/search";
 import { ChampionTier } from "@/types";
 import { getChampionIconUrl } from "@/utils/ddragon";
+import { TRANSLATIONS } from "@/constants";
+import { useLanguage } from "@/app/LanguageContext";
 
 function TierListContent() {
+    const { lang: language } = useLanguage();
+    const t = TRANSLATIONS[language as keyof typeof TRANSLATIONS] || TRANSLATIONS.FR;
 
     const {
         selectedRole,
@@ -27,18 +32,17 @@ function TierListContent() {
     } = useTierListData();
 
     const columns: Column<ChampionTier>[] = [
-
         {
             key: 'rank',
-            label: 'Rank',
+            label: t.rankColumn || 'Rank',
             sortable: true,
+            defaultDirection: 'asc',
             className: "text-center"
         },
-
         {
             key: 'name',
-            label: 'Champion',
-            sortable: true,
+            label: t.championColumn || 'Champion',
+            sortable: false,
             render: (champion) => (
                 <Link
                     href={`/champions/${encodeURIComponent(champion.name)}?role=${encodeURIComponent(selectedRole)}&rank=${encodeURIComponent(selectedRank)}`}
@@ -64,13 +68,14 @@ function TierListContent() {
 
         {
             key: 'role',
-            label: 'Role',
-            className: "text-center"
+            label: t.roleColumn || 'Role',
+            sortable: true,
+            className: 'text-center'
         },
-
         {
             key: 'tier',
-            label: 'Tier',
+            label: t.tierColumn || 'Tier',
+            sortable: true,
             render: (champion) => (
                 <TierBadge tier={champion.tier} size="sm" />
             ),
@@ -79,7 +84,7 @@ function TierListContent() {
 
         {
             key: 'winRate',
-            label: 'Win Rate',
+            label: t.winRate || 'Win Rate',
             sortable: true,
             defaultDirection: 'desc',
             render: (champion) => (
@@ -92,7 +97,7 @@ function TierListContent() {
 
         {
             key: 'pickRate',
-            label: 'Pick Rate',
+            label: t.pickRate || 'Pick Rate',
             sortable: true,
             defaultDirection: 'desc',
             className: 'text-center'
@@ -100,7 +105,7 @@ function TierListContent() {
 
         {
             key: 'banRate',
-            label: 'Ban Rate',
+            label: t.banRate || 'Ban Rate',
             sortable: true,
             defaultDirection: 'desc',
             className: 'text-center'
@@ -108,7 +113,7 @@ function TierListContent() {
 
         {
             key: 'counters',
-            label: 'Counter Picks',
+            label: t.counterPicksColumn || 'Counter Picks',
             render: (champion) => (
                 <div className="flex justify-center gap-1">
 
@@ -137,7 +142,7 @@ function TierListContent() {
 
         {
             key: 'matches',
-            label: 'Matches',
+            label: t.matches || 'Matches',
             sortable: true,
             defaultDirection: 'desc',
             className: 'text-center'
@@ -145,7 +150,7 @@ function TierListContent() {
 
         {
             key: 'trend',
-            label: 'Trend',
+            label: t.trendColumn || 'Trend',
             render: (champion) => {
 
                 switch (champion.trend) {
@@ -169,8 +174,8 @@ function TierListContent() {
 
             <Hero
                 badgeText="PATCH META"
-                title="Meta Tier List"
-                description="The best champions in the current patch, analyzed by win rate, pick rate, and ban rate."
+                title={t.metaTierList || "Meta Tier List"}
+                description={t.tierListDesc || "Les meilleurs champions du patch actuel. Analysé par win rate, pick rate et ban rate."}
             />
 
             <TierListSearchBar
@@ -183,19 +188,26 @@ function TierListContent() {
                 ranks={RANKS}
                 roles={ROLES}
                 formatRank={formatRank}
+                t={t}
             />
-            <FlexibleTable<ChampionTier>
-                columns={columns}
-                data={sortedData}
-                defaultSort={{ key: 'rank', direction: 'asc' }}
-            />
+            {loading ? (
+                <TableSkeleton columns={10} rows={15} />
+            ) : (
+                <FlexibleTable<ChampionTier>
+                    columns={columns}
+                    data={sortedData}
+                    defaultSort={{ key: 'rank', direction: 'asc' }}
+                />
+            )}
         </div>
     );
 }
 
 export default function TierListPage() {
+    const { lang: language } = useLanguage();
+    const t = TRANSLATIONS[language as keyof typeof TRANSLATIONS] || TRANSLATIONS.FR;
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white">Loading...</div>}>
+        <Suspense fallback={<Hero badgeText="PATCH META" title={t.metaTierList || "Meta Tier List"} description={t.loading || "Loading..."} />}>
             <TierListContent />
         </Suspense>
     );

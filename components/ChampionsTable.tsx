@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { DetailedChampionStats } from '../types';
 import { Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { getChampionIconUrl } from '../utils/ddragon';
+import { CURRENT_SEASON_INFO, TRANSLATIONS } from '../constants';
 
 interface ChampionsTableProps {
   champions: DetailedChampionStats[];
@@ -10,6 +11,7 @@ interface ChampionsTableProps {
 }
 
 export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang }) => {
+  const t = TRANSLATIONS[lang as keyof typeof TRANSLATIONS];
   const [sortConfig, setSortConfig] = useState<{ key: keyof DetailedChampionStats; direction: 'asc' | 'desc' }>({
     key: 'games',
     direction: 'desc'
@@ -17,12 +19,27 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filter States
-  const [activeQueue, setActiveQueue] = useState('All Ranked');
-  const [activeSeason, setActiveSeason] = useState('Season 2025');
+  const currentSeasonStr = `${CURRENT_SEASON_INFO.season} ${CURRENT_SEASON_INFO.split}`;
+  const [activeSeason, setActiveSeason] = useState(currentSeasonStr);
   const [isSeasonMenuOpen, setIsSeasonMenuOpen] = useState(false);
 
-  const QUEUE_FILTERS = ['All Ranked', 'Ranked Solo', 'Ranked Flex', 'Normal'];
-  const SEASONS = ['Season 2025', 'Season 2024 Split 2', 'Season 2024 Split 1'];
+  const tAllRanked = t.allRanked || 'All Ranked';
+  const tRankedSolo = t.rankedSoloDuo || 'Ranked Solo';
+  const tRankedFlex = t.rankedFlex || 'Ranked Flex';
+  const tNormal = t.normal || 'Normal';
+
+  const [activeQueue, setActiveQueue] = useState(tAllRanked);
+
+  const QUEUE_FILTERS = [tAllRanked, tRankedSolo, tRankedFlex, tNormal];
+  
+  // To avoid writing logic for calculating past patches, dynamically slip in the current patch at the top
+  const SEASONS = [
+    currentSeasonStr, 
+    'Season 2025 Split 3', 
+    'Season 2025 Split 2', 
+    'Season 2025 Split 1', 
+    'Season 2024 Split 3'
+  ];
 
   const GD_TIME_MINUTES = 15;
   const CHAMPION_ICON_SIZE = 32;
@@ -35,18 +52,18 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
     // Filtre de file : on utilise un champ facultatif queueType si présent
     // Possible valeurs attendues: 'RANKED_SOLO_5x5', 'RANKED_FLEX_SR', 'NORMAL_5x5', 'ARAM', etc.
     const queueType = (c as any).queueType as string | undefined;
-    if (activeQueue === 'All Ranked') {
-      // On garde les games classées (solo/flex) si queueType est présent
+    if (activeQueue === tAllRanked) {
+      // On garde les games classes (solo/flex) si queueType est prsent
       const isRanked = !queueType || queueType === 'RANKED_SOLO_5x5' || queueType === 'RANKED_FLEX_SR';
       return matchesSearch && isRanked;
     }
-    if (activeQueue === 'Ranked Solo') {
+    if (activeQueue === tRankedSolo) {
       return matchesSearch && (!queueType || queueType === 'RANKED_SOLO_5x5');
     }
-    if (activeQueue === 'Ranked Flex') {
+    if (activeQueue === tRankedFlex) {
       return matchesSearch && (!queueType || queueType === 'RANKED_FLEX_SR');
     }
-    if (activeQueue === 'Normal') {
+    if (activeQueue === tNormal) {
       return matchesSearch && (!queueType || queueType === 'NORMAL_5x5');
     }
 
@@ -127,12 +144,11 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
         {/* Search Input */}
         <div className="bg-[#121212] border border-white/5 rounded-[1.5rem] p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+            <Search className="w-4 h-4 text-gray-500 mr-2" />
             <input
               type="text"
-              placeholder="Search champion..."
-              className={`w-full bg-[#080808] border border-white/10 rounded-xl py-2 pl-10 pr-4 
-                text-sm text-gray-200 focus:border-lol-gold outline-none`}
+              placeholder={t.searchChampion || "Rechercher un champion..."}
+              className="bg-transparent border-none outline-none text-sm text-white w-full"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
@@ -149,17 +165,17 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
                 <th className="p-4 text-center w-10">#</th>
                 <th className="p-4 cursor-pointer hover:text-white">
                   <button type="button" className="w-full h-full flex items-center justify-start gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('name')}>
-                     Champion <SortIcon column="name" />
+                     {t.champion || 'Champion'} <SortIcon column="name" />
                   </button>
                 </th>
                 <th className="p-4 text-center cursor-pointer hover:text-white">
                    <button type="button" className="w-full h-full flex items-center justify-center gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('games')}>
-                      Games <SortIcon column="games" />
+                      {t.games || 'Games'} <SortIcon column="games" />
                    </button>
                 </th>
                 <th className="p-4 cursor-pointer hover:text-white">
                    <button type="button" className="w-full h-full flex items-center justify-start gap-1 bg-transparent border-none text-inherit font-inherit uppercase" onClick={() => handleSort('wins')}>
-                      Win/Lose (WR) <SortIcon column="wins" />
+                      WR <SortIcon column="wins" />
                    </button>
                 </th>
                 <th className="p-4 text-center cursor-pointer hover:text-white">
@@ -233,7 +249,7 @@ export const ChampionsTable: React.FC<ChampionsTableProps> = ({ champions, lang 
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-gray-500">No champions found.</td>
+                  <td colSpan={8} className="p-8 text-center text-gray-500">{t.noChampionsFound || "Aucun champion trouvé."}</td>
                 </tr>
               )}
             </tbody>

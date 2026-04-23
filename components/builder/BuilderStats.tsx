@@ -90,33 +90,33 @@ export const BuilderStats: React.FC<BuilderStatsProps> = ({
           <Users className="w-5 h-5 text-gray-600" />
         </div>
         <div className="p-6 space-y-6 text-sm bg-[#121212]">
-          <StatSection title={t.vitality} icon={<Shield className="w-3 h-3" />}>
-            <StatRow label="PV Max" value={Math.round(stats.hp)} color="text-green-400" />
-            <StatRow label="Mana" value={Math.round(stats.mp)} color="text-blue-400" />
-            <StatRow label="Regen" value={`${stats.mpRegen.toFixed(1)}/s`} />
+          <StatSection title={t.vitality || 'Vitalité'} icon={<Shield className="w-3 h-3" />}>
+            <StatRow label={t.hpMax || 'PV Max'} value={Math.round(stats.hp)} color="text-green-400" />
+            <StatRow label={t.mana || 'Mana'} value={Math.round(stats.mp)} color="text-blue-400" />
+            <StatRow label={t.hpregen || 'Regen'} value={`${stats.mpRegen.toFixed(1)}/s`} />
           </StatSection>
           <div className="h-px bg-white/5"></div>
-          <StatSection title={t.offensive} icon={<Swords className="w-3 h-3" />}>
-            <StatRow label="Attaque" value={Math.round(stats.ad)} />
-            <StatRow label="Puissance" value={Math.round(stats.ap)} color="text-purple-400" />
-            <StatRow label="Vit. Atq" value={stats.attackSpeed.toFixed(2)} />
-            <StatRow label="Critique" value={stats.crit} suffix="%" color="text-lol-red" />
-            <StatRow label="Léthalité" value={stats.lethality || 0} color="text-lol-red" />
-            <StatRow label="Péné Mag" value={stats.magicPen || 0} color="text-purple-400" />
+          <StatSection title={t.offensive || 'Offensif'} icon={<Swords className="w-3 h-3" />}>
+            <StatRow label={t.ad || 'Attaque'} value={Math.round(stats.ad)} />
+            <StatRow label={t.ap || 'Puissance'} value={Math.round(stats.ap)} color="text-purple-400" />
+            <StatRow label={t.attackSpeed || 'Vit. Atq'} value={stats.attackSpeed.toFixed(2)} />
+            <StatRow label={t.crit || 'Critique'} value={stats.crit} suffix="%" color="text-lol-red" />
+            <StatRow label={t.lethality || 'Léthalité'} value={stats.lethality || 0} color="text-lol-red" />
+            <StatRow label={t.magicPen || 'Pén Mag'} value={stats.magicPen || 0} color="text-purple-400" />
           </StatSection>
           <div className="h-px bg-white/5"></div>
-          <StatSection title={t.defensive} icon={<Shield className="w-3 h-3" />}>
-            <StatRow label="Armure" value={Math.round(stats.armor)} color="text-orange-300" />
-            <StatRow label="Résist Mag" value={Math.round(stats.mr)} color="text-blue-300" />
+          <StatSection title={t.defensive || 'Défensif'} icon={<Shield className="w-3 h-3" />}>
+            <StatRow label={t.armor || 'Armure'} value={Math.round(stats.armor)} color="text-orange-300" />
+            <StatRow label={t.mr || 'Résist Mag'} value={Math.round(stats.mr)} color="text-blue-300" />
           </StatSection>
           <div className="h-px bg-white/5"></div>
-          <StatSection title={t.utility} icon={<Zap className="w-3 h-3" />}>
-            <StatRow label="Haste" value={stats.haste} />
-            <StatRow label="Vitesse" value={Math.round(stats.moveSpeed)} />
+          <StatSection title={t.utility || 'Utilitaire'} icon={<Zap className="w-3 h-3" />}>
+            <StatRow label={t.haste || 'Haste'} value={stats.haste} />
+            <StatRow label={t.moveSpeed || 'Vitesse'} value={Math.round(stats.moveSpeed)} />
           </StatSection>
         </div>
         <div className="p-4 bg-black/30 border-t border-white/5 text-center">
-          <span className="text-gray-500 text-xs uppercase mr-2 font-bold">{t.totalCost}</span>
+          <span className="text-gray-500 text-xs uppercase mr-2 font-bold">{t.totalCost || 'Coût Total'}</span>
           <span className="text-lol-gold font-bold font-mono text-lg">
             {selectedItems.reduce((acc, item) => acc + (item?.price || 0), 0)} <span className="text-xs align-top">G</span>
           </span>
@@ -126,26 +126,26 @@ export const BuilderStats: React.FC<BuilderStatsProps> = ({
       {/* Target Dummy */}
       <div className="bg-[#121212] border border-white/5 rounded-[2rem] overflow-hidden shadow-xl">
         <div className="bg-[#1a1a1a] p-5 border-b border-white/5 flex items-center justify-between">
-          <span className="font-bold text-gray-200 font-display uppercase tracking-wide text-sm">{t.targetDummy}</span>
+          <span className="font-bold text-gray-200 font-display uppercase tracking-wide text-sm">{t.targetDummy || 'Mannequin'}</span>
           <Crosshair className="w-5 h-5 text-lol-red animate-pulse" />
         </div>
 
         <div className="p-6 space-y-5 bg-[#121212]">
           <div className="grid grid-cols-3 gap-3">
-            <DummyInput label="PV" value={dummy.hp} onChange={v => setDummy({ ...dummy, hp: v })} />
-            <DummyInput label="ARM" value={dummy.armor} onChange={v => setDummy({ ...dummy, armor: v })} />
-            <DummyInput label="RM" value={dummy.mr} onChange={v => setDummy({ ...dummy, mr: v })} />
+            <DummyInput label={t.hp || "PV"} value={dummy.hp} onChange={v => setDummy({ ...dummy, hp: v })} />
+            <DummyInput label={t.arm || "ARM"} value={dummy.armor} onChange={v => setDummy({ ...dummy, armor: v })} />
+            <DummyInput label={t.rm || "RM"} value={dummy.mr} onChange={v => setDummy({ ...dummy, mr: v })} />
           </div>
 
           {/* Spell Damage Breakdown */}
           <div className="space-y-3 mt-6">
             <div className="flex justify-between text-[10px] text-gray-500 uppercase tracking-wider pb-2 border-b border-white/5">
               <span>Source</span>
-              <span>{t.damage}</span>
+              <span>{t.damage || 'Dégâts'}</span>
             </div>
 
             <DamageRow
-              label={t.autoAttack}
+              label={t.autoAttack || 'Auto-Attaque'}
               value={Math.floor(calculateAutoDamage(stats, dummy))}
               checked={comboToggles['auto']}
               onToggle={() => toggleCombo('auto')}
@@ -165,7 +165,7 @@ export const BuilderStats: React.FC<BuilderStatsProps> = ({
             {/* Rune Damage Row */}
             {selectedRunes.selectedPerkIds[0] && (
               <DamageRow
-                label="Keystone Rune"
+                label={t.keystoneRune || "Keystone Rune"}
                 value={Math.floor(calculateRuneDamage(selectedRunes.selectedPerkIds[0], stats, championLevel, dummy, currentChampion))}
                 checked={true}
                 onToggle={() => { }}
@@ -177,7 +177,7 @@ export const BuilderStats: React.FC<BuilderStatsProps> = ({
           <div className="bg-[#1a1a1a] rounded-2xl p-6 text-center border border-lol-red/20 mt-6 relative overflow-hidden group shadow-lg">
             <div className="absolute inset-0 bg-lol-red/5 group-hover:bg-lol-red/10 transition-colors duration-500"></div>
             <div className="relative z-10">
-              <div className="text-[10px] text-gray-500 uppercase mb-2 font-bold tracking-widest">{t.comboTotal}</div>
+              <div className="text-[10px] text-gray-500 uppercase mb-2 font-bold tracking-widest">{t.comboTotal || 'Combo Total'}</div>
               <div className="text-4xl font-black text-lol-red font-mono drop-shadow-[0_0_15px_rgba(220,38,38,0.4)]">
                 {calculateTotalDamage()}
               </div>

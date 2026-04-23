@@ -12,6 +12,8 @@ import { getProfileIconUrl } from "@/utils/ddragon";
 import { formatRank } from "@/utils/formatUtils";
 import { LeaderboardEntry } from "@/types";
 import { LeaderboardSearchBar } from "@/components/leaderboard/LeaderboardSearchBar";
+import { TableSkeleton } from "@/components/skeletons/TableSkeleton";
+import { TRANSLATIONS } from "@/constants";
 
 // Interface des props (optionnels)
 interface LeaderboardPageProps {
@@ -26,28 +28,23 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
     const [tier, setTier] = useState(props.tier ?? "ALL");
     const [searchQuery, setSearchQuery] = useState("");
     const mePuuid = props.mePuuid ?? "";
-
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    // Fonction fetch leaderboard
-    const fetchLeaderboard = async ({ pageParam = undefined, queryKey }: any) => {
-        const [_key, fetchRegion, fetchTier] = queryKey as string[];
-        const cursorParam = pageParam ? `&cursor=${pageParam}` : "";
-        const tierParam = fetchTier !== "ALL" ? `&tier=${fetchTier}` : "";
-        const res = await fetch(`/api/leaderboard?region=${fetchRegion}${tierParam}${cursorParam}&limit=50`);
+    const t = TRANSLATIONS.FR;
+    const fetchLeaderboard = async ({ pageParam = 1 }) => {
+        const url = `/api/leaderboard?region=${region}&tier=${tier}&page=${pageParam}`;
+        const res = await fetch(url);
         if (!res.ok) throw new Error("Network response was not ok");
         return res.json();
     };
-
-    // useInfiniteQuery
+    
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useInfiniteQuery({
         queryKey: ["leaderboard", region, tier],
         queryFn: fetchLeaderboard,
         getNextPageParam: (lastPage: any) => lastPage.nextCursor,
         initialPageParam: undefined,
     });
-
-    // Infinite scroll observer
+    
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
@@ -78,7 +75,7 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
     const columns: Column<any>[] = [
         {
             key: "absoluteRank",
-            label: "Rank",
+            label: t.rankColumn || "Rank",
             sortable: true,
             defaultDirection: "asc",
             className: "text-center font-bold",
@@ -90,7 +87,7 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
         },
         {
             key: "summoner",
-            label: "Summoner",
+            label: t.summonerColumn || "Summoner",
             sortable: false,
             render: (player) => (
                 <div className="flex items-center gap-3">
@@ -122,7 +119,7 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
         },
         {
             key: "tier",
-            label: "Tier",
+            label: t.tierColumn || "Tier",
             sortable: false,
             className: "text-center",
             render: (player) => (
@@ -138,7 +135,7 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
         },
         {
             key: "winrate",
-            label: "Winrate",
+            label: t.winrateColumn || "Winrate",
             sortable: true,
             defaultDirection: "desc",
             className: "text-center",
@@ -150,7 +147,7 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
         },
         {
             key: "legendScore",
-            label: "Legend Score",
+            label: t.legendScoreColumn || "Legend Score",
             sortable: true,
             defaultDirection: "desc",
             className: "text-center",
@@ -165,17 +162,10 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
     const TIERS = ["ALL", "CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "PLATINUM"];
 
     // Loading/Error Views
-    if (status === "pending") {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-lol-gold" />
-            </div>
-        );
-    }
     if (status === "error") {
         return (
             <div className="min-h-screen flex items-center justify-center text-red-500">
-                Error loading leaderboard.
+                {t.errorLoadingLeaderboard || "Erreur lors du chargement du classement."}
             </div>
         );
     }
@@ -184,29 +174,33 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
         <div className="pb-20">
             {/* Hero */}
             <Hero
-                badgeText={`${region} RANKINGS`}
-                title="Leaderboard"
-                description={`The best players in ${region}. Rise to the top and become a Legend.`}
+                badgeText={`${region} ${t.rankings || "RANKINGS"}`}
+                title={t.leaderboard || "Classement"}
+                description={`${t.leaderboardDesc1 || "Les meilleurs joueurs de"} ${region}${t.leaderboardDesc2 || ". Atteignez le sommet et devenez une Légende."}`}
             />
 
-            {/* Nouveau composant de recherche unifié */}
+            {/* Nouveau composant de recherche unifi */}
             <LeaderboardSearchBar
                 tier={tier}
                 setTier={setTier}
                 tiers={TIERS}
                 search={searchQuery}
                 setSearch={setSearchQuery}
-                placeholder="Search summoner in results..."
+                placeholder={t.searchSummoner || "Rechercher un invocateur..."}
             />
 
             <div className="max-w-7xl mx-auto px-4 space-y-6">
                 {/* Table */}
                 <div>
-                    <FlexibleTable
-                        columns={columns}
-                        data={enrichedData}
-                        defaultSort={{ key: "absoluteRank", direction: "asc" }}
-                    />
+                    {status === "pending" ? (
+                        <TableSkeleton columns={5} rows={15} />
+                    ) : (
+                        <FlexibleTable
+                            columns={columns}
+                            data={enrichedData}
+                            defaultSort={{ key: "absoluteRank", direction: "asc" }}
+                        />
+                    )}
                 </div>
 
                 {/* Infinite scroll trigger */}
@@ -214,9 +208,9 @@ export default function LeaderboardPage(props: LeaderboardPageProps) {
                     {isFetchingNextPage ? (
                         <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
                     ) : hasNextPage ? (
-                        <span className="text-xs text-gray-500">Scroll for more...</span>
+                        <span className="text-xs text-gray-500">{t.scrollForMore || "Faites défiler pour voir plus..."}</span>
                     ) : (
-                        <span className="text-xs text-gray-500">End of Leaderboard</span>
+                        <span className="text-xs text-gray-500">{t.endOfLeaderboard || "Fin du classement"}</span>
                     )}
                 </div>
             </div>

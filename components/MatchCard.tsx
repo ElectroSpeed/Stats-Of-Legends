@@ -149,7 +149,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, region = 'EUW' }) =
       </div>
 
       {activeTab !== 'NONE' && (
-        <MatchCardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        <MatchCardTabs activeTab={activeTab} setActiveTab={setActiveTab} t={t} />
       )}
 
       {activeTab !== 'NONE' && (

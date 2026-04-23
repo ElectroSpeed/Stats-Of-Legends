@@ -103,7 +103,7 @@ async function fetchSummonerData(r: string, sName: string, forceUpdate: boolean)
     url.searchParams.append('tag', tag);
     if (forceUpdate) {
         url.searchParams.append('force', 'true');
-        url.searchParams.append('_t', Date.now().toString()); // Cache buster
+        url.searchParams.append('_t', Date.now().toString());
     }
 
     const res = await fetch(url.toString(), { cache: 'no-store' });

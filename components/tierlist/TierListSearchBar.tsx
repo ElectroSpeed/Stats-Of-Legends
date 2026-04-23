@@ -17,9 +17,10 @@ interface TierListSearchBarProps {
 
     search: string;
     setSearch: (v: string) => void;
+    t?: any;
 }
 
-export const TierListSearchBar = ({rank, setRank, ranks, formatRank, role, setRole, roles, search, setSearch,}: TierListSearchBarProps) => {
+export const TierListSearchBar = ({rank, setRank, ranks, formatRank, role, setRole, roles, search, setSearch, t}: TierListSearchBarProps) => {
 
     const handleSubmit = () => {};
 
@@ -53,7 +54,7 @@ export const TierListSearchBar = ({rank, setRank, ranks, formatRank, role, setRo
                     <Search className="w-5 h-5 text-gray-500 mr-3" />
                     <input
                         className="w-full bg-transparent outline-none border-none text-white placeholder:text-gray-500 text-base sm:text-xl font-medium"
-                        placeholder="Search Champion..."
+                        placeholder={t?.searchChampion || "Search Champion..."}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />

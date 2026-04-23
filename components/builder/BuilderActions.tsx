@@ -72,7 +72,7 @@ export const BuilderActions: React.FC<BuilderActionsProps> = ({ history, onAnaly
                 <div className="bg-[#121212] border border-lol-hextech/30 p-8 rounded-[2rem] shadow-2xl animate-fadeIn relative overflow-hidden">
                     <div className="absolute -right-20 -top-20 w-64 h-64 bg-lol-hextech/10 rounded-full blur-[100px]"></div>
                     <h3 className="text-lol-hextech font-bold mb-4 flex items-center gap-3 font-display text-xl tracking-wide">
-                        <div className="p-2 bg-lol-hextech/20 rounded-xl"><Brain className="w-6 h-6" /></div> Analyse du Coach
+                        <div className="p-2 bg-lol-hextech/20 rounded-xl"><Brain className="w-6 h-6" /></div> {t.aiCoachAnalysis || "Analyse du Coach"}
                     </h3>
                     <div className="prose prose-invert prose-sm text-gray-300 font-light leading-relaxed">
                         {aiAnalysis.split('\n').map((line, i) => (
