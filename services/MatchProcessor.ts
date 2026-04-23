@@ -58,8 +58,10 @@ export class MatchProcessor {
             await this.processBans(info, champMap, tier, patch, durationBucket);
 
             // Process Participants
+            const timelineJson = jsonData ? jsonData.timeline : undefined;
+            const skipTimelineFetch = !!jsonData; // If jsonData was passed, do NOT fallback fetch
             for (const p of info.participants) {
-                await this.processSingleParticipant(p, info, matchId, region, tier, patch, durationBucket, champMap, itemMap, teamStats);
+                await this.processSingleParticipant(p, info, matchId, region, tier, patch, durationBucket, champMap, itemMap, teamStats, timelineJson, skipTimelineFetch);
             }
 
             // Mark as Scanned
@@ -111,14 +113,14 @@ export class MatchProcessor {
         }
     }
 
-    private static async processSingleParticipant(p: any, info: any, matchId: string, region: string, tier: string, patch: string, durationBucket: string, champMap: any, itemMap: any, teamStats: any) {
+    private static async processSingleParticipant(p: any, info: any, matchId: string, region: string, tier: string, patch: string, durationBucket: string, champMap: any, itemMap: any, teamStats: any, timelineJson?: any, skipTimelineFetch: boolean = false) {
         let role = this.normalizeRole(p.teamPosition);
         if (!role || role === 'Invalid') return;
 
 
 
 
-        const timelineData = await this.extractTimelineData(matchId, region, p.participantId);
+        const timelineData = await this.extractTimelineData(matchId, region, p.participantId, timelineJson, skipTimelineFetch);
         const itemStats = this.extractItems(p, timelineData.cleanEvents, itemMap);
         const runeStats = this.extractRunes(p);
         const spellStats = this.extractSpells(p);
@@ -138,13 +140,18 @@ export class MatchProcessor {
         return role;
     }
 
-    private static async extractTimelineData(matchId: string, region: string, participantId: number) {
+    private static async extractTimelineData(matchId: string, region: string, participantId: number, timelineJson?: any, skipTimelineFetch: boolean = false) {
         let skillOrderString = '';
         let cleanEvents: any[] = [];
         try {
-            const routing = this.getRoutingRegion(region);
-            const timeline = await RiotService.getMatchTimeline(routing, matchId);
+            let timeline = timelineJson;
+            if (!timeline && !skipTimelineFetch) {
+                const routing = this.getRoutingRegion(region);
+                timeline = await RiotService.getMatchTimeline(routing, matchId);
+            }
             
+            if (!timeline) return { skillOrderString, cleanEvents };
+
             // Skill Order
             skillOrderString = this.processSkillOrder(timeline, participantId);
 

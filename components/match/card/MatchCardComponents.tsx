@@ -128,13 +128,13 @@ export const ItemsList = ({ me }: any) => (
     </div>
 );
 
-export const MatchCardTabs = ({ activeTab, setActiveTab }: any) => (
-    <div className="flex border-t border-white/5 bg-[#121212]">
-        <button onClick={() => setActiveTab('SUMMARY')} className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'SUMMARY' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>Vue d'ensemble</button>
-        <button onClick={() => setActiveTab('SCORE')} className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'SCORE' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>Legend Score</button>
-        <button onClick={() => setActiveTab('TEAM')} className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'TEAM' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>Analyse d'équipe</button>
-        <button onClick={() => setActiveTab('BUILD')} className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'BUILD' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>Build</button>
-        <button onClick={() => setActiveTab('OTHER')} className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'OTHER' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>Autre</button>
+export const MatchCardTabs = ({ activeTab, setActiveTab, t }: any) => (
+    <div className="flex border-t border-white/5 bg-[#121212] overflow-x-auto whitespace-nowrap scrollbar-hide">
+        <button onClick={() => setActiveTab('SUMMARY')} className={`flex-1 min-w-fit px-2 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'SUMMARY' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>{t.overview || "Vue d'ensemble"}</button>
+        <button onClick={() => setActiveTab('SCORE')} className={`flex-1 min-w-fit px-2 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'SCORE' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>{t.legendScore || "Legend Score"}</button>
+        <button onClick={() => setActiveTab('TEAM')} className={`flex-1 min-w-fit px-2 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'TEAM' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>{t.teamAnalysis || "Analyse d'équipe"}</button>
+        <button onClick={() => setActiveTab('BUILD')} className={`flex-1 min-w-fit px-2 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'BUILD' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>{t.build || "Build"}</button>
+        <button onClick={() => setActiveTab('OTHER')} className={`flex-1 min-w-fit px-2 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'OTHER' ? 'text-white border-white bg-white/5' : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'}`}>{t.other || "Autre"}</button>
     </div>
 );
 

@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SummonerProfile, Match, HeatmapDay, DetailedChampionStats, Teammate } from '@/types';
+import { useLanguage } from '@/app/LanguageContext';
+import { TRANSLATIONS } from '@/constants';
 
 export function useSummonerData(region: string, summonerName: string) {
+    const { lang } = useLanguage();
+    const t = TRANSLATIONS[lang as keyof typeof TRANSLATIONS] || TRANSLATIONS.FR;
+
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [updateError, setUpdateError] = useState<string | null>(null);
@@ -19,10 +24,10 @@ export function useSummonerData(region: string, summonerName: string) {
         else if (!isPolling) setLoading(true);
 
         setUpdateError(null);
-        
+
         try {
             const realData = await fetchSummonerData(region, summonerName, isUpdate);
-            
+
             if (realData) {
                 setProfile(realData.profile as SummonerProfile);
                 setMatches(realData.matches as Match[]);
@@ -33,14 +38,25 @@ export function useSummonerData(region: string, summonerName: string) {
                 setPerformance(realData.performance || null);
                 if (realData.version) setVersion(realData.version);
 
+                // Trigger an elegant Auto-Update if the profile is naturally expired!
+                if (!isUpdate && realData.meta?.needsAutoRefresh) {
+                    setTimeout(() => {
+                        loadData(true);
+                    }, 500); // Small 500ms delay enables initial UI to render cleanly before starting spin animations
+                }
+
                 return (realData.matches as Match[]).length;
             }
         } catch (e: any) {
             console.error('Failed to fetch summoner', e);
             if (e.message === 'RIOT_FORBIDDEN') {
                 setUpdateError('Impossible de mettre à jour les données : accès Riot API refusé (403).');
+            } else if (e.message.startsWith('COOLDOWN_')) {
+                const minutes = e.message.split('_')[1];
+                const cdMsg = t.updateCooldown ? t.updateCooldown.replace('{minutes}', minutes) : `Veuillez attendre ${minutes} minute(s) avant la prochaine mise à jour.`;
+                setUpdateError(cdMsg);
             } else if (e.message !== 'Fetch failed') { // Specific error handling already done in helper or generic fallback
-                 setUpdateError('Échec de la mise à jour des données du joueur.');
+                setUpdateError('Échec de la mise à jour des données du joueur.');
             }
 
             if (!isUpdate && !isPolling) {
@@ -56,7 +72,12 @@ export function useSummonerData(region: string, summonerName: string) {
             if (!isPolling) setUpdating(false);
         }
     }
-    
+
+    useEffect(() => {
+        loadData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [region, summonerName]);
+
     return {
         loading,
         updating,
@@ -88,14 +109,18 @@ async function fetchSummonerData(r: string, sName: string, forceUpdate: boolean)
     url.searchParams.append('tag', tag);
     if (forceUpdate) {
         url.searchParams.append('force', 'true');
+        url.searchParams.append('_t', Date.now().toString());
     }
 
-    const res = await fetch(url.toString());
+    const res = await fetch(url.toString(), { cache: 'no-store' });
 
     if (!res.ok) {
         const errJson = await res.json().catch(() => null);
         if (errJson?.error === 'RIOT_FORBIDDEN') {
             throw new Error('RIOT_FORBIDDEN');
+        }
+        if (errJson?.error === 'COOLDOWN') {
+            throw new Error(`COOLDOWN_${errJson.minutesLeft || 10}`);
         }
         throw new Error('Fetch failed');
     }

@@ -150,6 +150,7 @@ model Summoner {
   lastMatchFetch DateTime? // Used for incremental updates
   revisionDate   BigInt?   // Riot's revision date (epoch ms)
   lastUpdateLog  String?   // Log message from last update (e.g. "3 matches skipped")
+  views          Int       @default(0) // Popularity Tracker
 
   ranks          SummonerRank[]
   matches        SummonerMatch[]
@@ -244,8 +245,6 @@ model MatchAnalysis {
 }
 
 // --- Leaderboard Models ---
-
-// LeaderboardEntry REMOVED (Merged into SummonerRank)
 
 model LeaderboardStats {
   region       String   @id

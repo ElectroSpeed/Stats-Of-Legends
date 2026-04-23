@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import {House, Hammer, Trophy, ChartColumnIncreasing, Globe, ChevronDown, Gamepad2,} from "lucide-react";
+import React, { useMemo, useState } from "react";
+import {House, Hammer, Trophy, ChartColumnIncreasing, Globe, Search} from "lucide-react";
+
+import { Logo } from "./icons/Logo";
 
 import { CURRENT_PATCH, TRANSLATIONS } from "../constants";
 import { Language } from "../types";
@@ -9,53 +11,43 @@ import { SafeLink } from "./ui/SafeLink";
 import { useSafeNavigation } from "../hooks/useSafeNavigation";
 import { useLanguage } from "../app/LanguageContext";
 
-const PATCH_URL_BASE = "https://www.leagueoflegends.com/fr-fr/news/game-updates/patch-";
+import { Selector } from "./global/button/Selector";
+import { CustomButton } from "./global/button/CustomButton";
+
+import { DesktopNav } from "./navbar/DesktopNav";
+import { MobileMenu } from "./navbar/MobileMenu";
+import { PatchIndicator } from "./navbar/PatchIndicator";
+import { HomeSearchBar } from "./global/HomeSearchBar";
+
+const PATCH_URL_BASE = "https://www.leagueoflegends.com/fr-fr/news/game-updates/league-of-legends-patch-";
 
 const LANGUAGES: Language[] = ["FR", "EN", "ES", "KR"];
-const CURRENT_YEAR_SHORT = "25";
-const CURRENT_SEASON = "15";
 
-interface NavbarProps {currentView?: string;onNavigate?: (view: string) => void;}
+type NavbarProps = { currentView?: string; onNavigate?: (view: string) => void; };
 
-export const Navbar: React.FC<NavbarProps> = ({currentView, onNavigate,}) => {
-    const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
-
+export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
     const { pathname } = useSafeNavigation();
     const { lang: currentLang, setLang: setCurrentLang } = useLanguage();
     const t = TRANSLATIONS[currentLang];
 
-    const langMenuRef = useRef<HTMLDivElement>(null);
+    const [openSearch, setOpenSearch] = useState(false);
+    const [livePatch, setLivePatch] = useState(CURRENT_PATCH);
+
+    React.useEffect(() => {
+        fetch('https://ddragon.leagueoflegends.com/api/versions.json')
+            .then(res => res.json())
+            .then(data => { if (data && data[0]) setLivePatch(data[0]); })
+            .catch(() => {});
+    }, []);
 
     const patchUrl = useMemo(() => {
-        const [seasonRaw, patchNumber] = CURRENT_PATCH.split(".");
+        const [seasonRaw, patchNumber] = livePatch.split(".");
         if (!seasonRaw || !patchNumber) return "#";
-
-        const season = seasonRaw === CURRENT_SEASON ? CURRENT_YEAR_SHORT : seasonRaw;
-
-        return `${PATCH_URL_BASE}${season}-${patchNumber}-notes/`;
-    }, []);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
-                setIsLangMenuOpen(false);
-            }
-        };
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setIsLangMenuOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        document.addEventListener("keydown", handleEscape);
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("keydown", handleEscape);
-        };
-    }, []);
+        
+        // Riot games Maps "16.x" to "26.x" (Year 26 instead of Season 16)
+        const yearMapped = String(Number(seasonRaw) + 10);
+        return `${PATCH_URL_BASE}${yearMapped}-${patchNumber}-notes/`;
+    }, [livePatch]);
 
     const handleNavClick = (e: React.MouseEvent, view: string) => {
         if (!onNavigate) return;
@@ -63,162 +55,105 @@ export const Navbar: React.FC<NavbarProps> = ({currentView, onNavigate,}) => {
         onNavigate(view);
     };
 
-    const isHome = currentView ? currentView === "home" : pathname === "/";
+    const isActive = (key: string, href: string) => {
+        if (currentView) return currentView === key;
+        return pathname === href;
+    };
+
+    const NAV_ITEMS = [
+        { key: "home", href: "/", icon: <House className="w-4 h-4" />, label: t.home },
+        { key: "builder", href: "/builder", icon: <Hammer className="w-4 h-4" />, label: t.builder },
+        { key: "leaderboard", href: "/leaderboard", icon: <Trophy className="w-4 h-4" />, label: t.leaderboard },
+        { key: "tierlist", href: "/tierlist", icon: <ChartColumnIncreasing className="w-4 h-4" />, label: t.tierlist },
+    ];
 
     return (
-        <nav className="sticky top-0 z-50 w-full bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-3 items-center h-20">
-
-                    {/* LOGO */}
-                    <div className="flex items-center justify-start shrink-0">
+        <>
+            <nav className="sticky top-0 z-[100] w-full bg-[#111111]/90 backdrop-blur-xl border-b border-white/10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-[15px]">
+                    <div className="flex items-center justify-between py-4 gap-2">
+                        
                         <SafeLink
                             href="/"
                             onClick={(e) => handleNavClick(e, "home")}
-                            className="flex items-center gap-3 group"
+                            className="flex items-center gap-2 sm:gap-3 group shrink-0"
                         >
-                            <div className="relative w-12 h-12 flex items-center justify-center">
-                                <div className="absolute w-8 h-8 bg-lol-gold/25 rounded-full transition-all duration-500 group-hover:w-14 group-hover:h-14 group-hover:bg-lol-red/20 group-hover:blur-sm" />
-                                <div className="relative z-10 w-full h-full bg-[#121212] border border-lol-gold/30 rounded-2xl flex items-center justify-center group-hover:border-lol-red/50 transition-colors duration-300 shadow-glow-gold group-hover:shadow-glow-red">
-                                    <Gamepad2 className="text-lol-gold w-6 h-6 group-hover:text-lol-red transition-colors" />
-                                </div>
+                            <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                                <Logo className="w-full h-full text-white group-hover:text-lol-gold transition-colors" />
                             </div>
 
-                            <div className="flex flex-col">
-                <span className="font-bold text-lg tracking-tight text-gray-100 uppercase leading-none">
-                  Stats Of
-                </span>
-                                <span className="font-bold text-lg tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-lol-gold to-lol-red uppercase leading-none drop-shadow-sm">
-                  Legends
-                </span>
+                            <div className="flex flex-col leading-none">
+                                <span className="font-bold text-sm sm:text-lg text-white uppercase">
+                                    Stats Of
+                                </span>
+                                <span className="font-bold text-sm sm:text-lg tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-lol-gold to-lol-red uppercase">
+                                    Legends
+                                </span>
                             </div>
                         </SafeLink>
-                    </div>
 
-                    {/* NAVIGATION */}
-                    <div className="hidden md:flex justify-center">
-                        <div className="flex items-center space-x-2">
-                            <NavButton
-                                label={t.home}
-                                icon={<House className="w-4 h-4" />}
-                                active={currentView ? currentView === "home" : pathname === "/"}
-                                href="/"
-                                onClick={(e) => handleNavClick(e, "home")}
-                            />
-                            <NavButton
-                                label={t.builder}
-                                icon={<Hammer className="w-4 h-4" />}
-                                active={currentView ? currentView === "builder" : pathname === "/builder"}
-                                href="/builder"
-                                onClick={(e) => handleNavClick(e, "builder")}
-                            />
-                            <NavButton
-                                label={t.leaderboard}
-                                icon={<Trophy className="w-4 h-4" />}
-                                active={currentView ? currentView === "leaderboard" : pathname === "/leaderboard"}
-                                href="/leaderboard"
-                                onClick={(e) => handleNavClick(e, "leaderboard")}
-                            />
-                            <NavButton
-                                label={t.tierlist}
-                                icon={<ChartColumnIncreasing className="w-4 h-4" />}
-                                active={currentView ? currentView === "tierlist" : pathname === "/tierlist"}
-                                href="/tierlist"
-                                onClick={(e) => handleNavClick(e, "tierlist")}
+                        {/* NAV : Hidden on mobile */}
+                        <div className="hidden lg:flex flex-1 justify-center">
+                            <DesktopNav
+                                items={NAV_ITEMS}
+                                isActive={isActive}
+                                onNavigate={handleNavClick}
                             />
                         </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-end gap-6 shrink-0">
-
-                        <PatchIndicator patch={CURRENT_PATCH} url={patchUrl} />
-
-                        <div className="hidden md:block h-8 w-px bg-white/10" />
-
-                        {/* LANGUAGE */}
-                        <div ref={langMenuRef} className="relative">
-                            <button
-                                type="button"
-                                onClick={() => setIsLangMenuOpen((prev) => !prev)}
-                                className="hidden md:flex relative h-10 items-center gap-2 px-4 rounded-full bg-[#121212] border border-white/10 text-gray-400 transition-all duration-300 cursor-pointer group overflow-hidden hover:border-lol-gold/40 hover:text-lol-gold hover:shadow-[0_0_15px_rgba(200,170,110,0.25)]"
-                            >
-                                <Globe className="w-4 h-4" />
-                                <span className="text-xs font-bold uppercase tracking-wider">
-                  {currentLang}
-                </span>
-                                <ChevronDown
-                                    className={`w-3 h-3 transition-transform duration-300 ${
-                                        isLangMenuOpen ? "rotate-180" : ""
-                                    }`}
+                        
+                        <div className="flex items-center justify-end gap-2 sm:gap-3 shrink-0">
+                            
+                            {pathname !== "/" && (
+                                <CustomButton
+                                    onClick={() => setOpenSearch(true)}
+                                    iconLeft={<Search className="w-4 h-4 sm:w-5 h-5" />}
+                                    variant="classic"
+                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center p-0"
                                 />
-                            </button>
-
-                            {isLangMenuOpen && (
-                                <div className="absolute right-0 top-full mt-3 w-32 bg-[#121212] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 animate-fadeIn">
-                                    {LANGUAGES.map((lang) => (
-                                        <button
-                                            key={lang}
-                                            type="button"
-                                            onClick={() => {
-                                                setCurrentLang(lang);
-                                                setIsLangMenuOpen(false);
-                                            }}
-                                            className={`w-full px-4 py-2 text-xs font-bold flex items-center justify-between transition-all duration-200 rounded-xl ${
-                                                currentLang === lang
-                                                    ? "text-lol-gold bg-white/5"
-                                                    : "text-gray-400 hover:bg-white/5 hover:text-white"
-                                            }`}
-                                        >
-                                            {lang}
-                                            {currentLang === lang && (
-                                                <div className="w-1.5 h-1.5 rounded-full bg-lol-gold shadow-glow-gold" />
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
                             )}
+                            
+                            <PatchIndicator patch={livePatch} url={patchUrl} />
+
+                            <div className="hidden lg:block w-28">
+                                <Selector
+                                    options={LANGUAGES.map((l) => ({ label: l, value: l }))}
+                                    selected={currentLang}
+                                    onChange={setCurrentLang}
+                                    buttonIcon={<Globe className="w-4 h-4 text-lol-gold" />}
+                                />
+                            </div>
+
+                            <MobileMenu
+                                items={NAV_ITEMS}
+                                currentLang={currentLang}
+                                setLang={setCurrentLang}
+                                languages={LANGUAGES}
+                            />
                         </div>
                     </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+
+            {/* SEARCH PANEL */}
+            {openSearch && (
+                <div className="fixed inset-0 z-[999]">
+                    <div
+                        className="fixed inset-0 bg-black/40 animate-in fade-in duration-200"
+                        onMouseDown={() => setOpenSearch(false)}
+                    />
+                    <div
+                        className="absolute top-20 left-0 w-full p-4 sm:p-6 z-[150] animate-in slide-in-from-top-4 duration-200"
+                        onMouseDown={() => setOpenSearch(false)}
+                    >
+                        <div
+                            className="mx-auto max-w-4xl"
+                            onMouseDown={(e) => e.stopPropagation()}
+                        >
+                            <HomeSearchBar />
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
-
-interface PatchIndicatorProps {patch: string;url: string;}
-
-const PatchIndicator: React.FC<PatchIndicatorProps> = ({patch, url,}) => (
-    <div className="hidden md:flex flex-col items-end">
-    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-      Current Patch
-    </span>
-        <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-lol-gold font-mono text-sm hover:text-lol-red transition-colors group"
-        >
-            <span className="w-2 h-2 rounded-full bg-lol-red shadow-[0_0_8px_#C23030] animate-pulse transition-transform group-hover:scale-125" />
-            <span className="group-hover:underline underline-offset-4 decoration-lol-red/50">
-        {patch}
-      </span>
-        </a>
-    </div>
-);
-
-interface NavButtonProps {label: string;icon?: React.ReactNode;active: boolean;href: string;onClick?: (e: React.MouseEvent) => void;}
-
-const NavButton: React.FC<NavButtonProps> = ({label, icon, active, href, onClick,}) => (
-    <SafeLink
-        href={href}
-        onClick={onClick}
-        className={`relative px-3 lg:px-4 xl:px-5 py-2.5 text-sm font-bold uppercase tracking-wider transition-all duration-300 rounded-full group flex items-center gap-2 whitespace-nowrap ${
-            active
-                ? "text-[#050505] bg-lol-gold shadow-[0_0_15px_rgba(200,170,110,0.3)]"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
-        }`}
-    >
-        {icon}
-        <span className="hidden xl:inline">{label}</span>
-    </SafeLink>
-);
