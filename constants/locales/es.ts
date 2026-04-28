@@ -152,8 +152,7 @@ export const ES = {
     counterPicksColumn: "Counter Picks",
     trendColumn: "Tendencia",
     metaTierList: "Meta Tier List",
-    leaderboardDesc: "Los mejores jugadores de {region}. Alcanza la cima y conviértete en una Leyenda.",
-    navBuilder: "Noxus Constructor",
+    leaderboardDesc: "Los mejores jugadores de {region}. Sube a la cima y conviértete en Leyenda.",
     lpHistoryTitle: "Progresión de PL ({days} Días)",
     lpHistoryDesc: "Historial de tus ganancias y pérdidas de PL en Clasificatoria Solo/Dúo.",
     noHistoryData: "No hay datos de historial disponibles por el momento."

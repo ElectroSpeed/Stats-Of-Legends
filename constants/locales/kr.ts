@@ -152,9 +152,8 @@ export const KR = {
     counterPicksColumn: "카운터 픽",
     trendColumn: "추세",
     metaTierList: "메타 티어 리스트",
-    leaderboardDesc: "{region} 최고의 플레이어들. 정상에 올라 전설이 되십시오.",
-    navBuilder: "녹서스 빌더",
-    lpHistoryTitle: "LP 진행 상황 ({days} 일)",
-    lpHistoryDesc: "랭크 솔로/듀오에서 LP의 변동 내역입니다.",
+    leaderboardDesc: "{region} 최고의 플레이어들입니다. 정상으로 올라 전설이 되세요.",
+    lpHistoryTitle: "LP 진행률 ({days}일)",
+    lpHistoryDesc: "솔로/듀오 랭크에서의 LP 획득 및 손실 내역입니다.",
     noHistoryData: "현재 기록 데이터가 없습니다."
 };

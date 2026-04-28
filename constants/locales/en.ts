@@ -153,7 +153,6 @@ export const EN = {
     trendColumn: "Trend",
     metaTierList: "Meta Tier List",
     leaderboardDesc: "The best players in {region}. Rise to the top and become a Legend.",
-    navBuilder: "Noxus Builder",
     lpHistoryTitle: "LP Progression ({days} Days)",
     lpHistoryDesc: "History of your LP gains and losses in Ranked Solo/Duo.",
     noHistoryData: "No history data available at the moment."
