@@ -71,7 +71,8 @@ export const KR = {
     stats: "통계",
     damageDealt: "가한 피해량",
     footerTitle: "Stats Of Legends",
-    footerTagline: "리그 오브 레전드를 위한 차세대 분석 플랫폼. 빌드를 최적화하고 실수를 이해하며 성과를 극대화하는 필수 도구인 Stats Of Legends로 랭크를 올리세요.",
+    footerTagline: "리그 오브 레전드를 위한 차세대 분석 플랫폼. 빌드를 최적화하고, 실수를 이해하며, Stats Of Legends와 함께 랭크를 올리세요.",
+    navigation: "내비게이션",
     navHome: "홈",
     navBuilder: "녹서스 빌더",
     navLeaderboard: "랭킹",
@@ -151,5 +152,9 @@ export const KR = {
     counterPicksColumn: "카운터 픽",
     trendColumn: "추세",
     metaTierList: "메타 티어 리스트",
-    leaderboardDesc: "{region} 최고의 플레이어. 정점에 도달하여 전설이 되십시오."
+    leaderboardDesc: "{region} 최고의 플레이어들. 정상에 올라 전설이 되십시오.",
+    navBuilder: "녹서스 빌더",
+    lpHistoryTitle: "LP 진행 상황 ({days} 일)",
+    lpHistoryDesc: "랭크 솔로/듀오에서 LP의 변동 내역입니다.",
+    noHistoryData: "현재 기록 데이터가 없습니다."
 };

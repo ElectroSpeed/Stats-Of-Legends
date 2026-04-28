@@ -71,7 +71,8 @@ export const ES = {
     stats: "Estadísticas",
     damageDealt: "Daño Infligido",
     footerTitle: "Stats Of Legends",
-    footerTagline: "La plataforma de análisis de nueva generación para League of Legends. Optimiza tus builds, entiende tus errores y escala en el ladder gracias a Stats Of Legends, la herramienta indispensable para mejorar tu rendimiento.",
+    footerTagline: "Plataforma de análisis de próxima generación para League of Legends. Optimiza tus builds, entiende tus errores y sube en la clasificación con Stats Of Legends.",
+    navigation: "Navegación",
     navHome: "Inicio",
     navBuilder: "Constructor Noxus",
     navLeaderboard: "Clasificación",
@@ -150,6 +151,10 @@ export const ES = {
     roleColumn: "Rol",
     counterPicksColumn: "Counter Picks",
     trendColumn: "Tendencia",
-    metaTierList: "Tier List del Meta",
-    leaderboardDesc: "Los mejores jugadores de {region}. Escala a la cima y conviértete en una Leyenda."
+    metaTierList: "Meta Tier List",
+    leaderboardDesc: "Los mejores jugadores de {region}. Alcanza la cima y conviértete en una Leyenda.",
+    navBuilder: "Noxus Constructor",
+    lpHistoryTitle: "Progresión de PL ({days} Días)",
+    lpHistoryDesc: "Historial de tus ganancias y pérdidas de PL en Clasificatoria Solo/Dúo.",
+    noHistoryData: "No hay datos de historial disponibles por el momento."
 };

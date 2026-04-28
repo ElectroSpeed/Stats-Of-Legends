@@ -145,7 +145,7 @@ export default function SummonerClientPage({ params }: { params: { region: strin
 
       {/* TAB CONTENT: PROGRESSION LP */}
       {profileTab === 'progression' && (
-        <ProgressionTab lpHistory={lpHistory} rankColor={rankColor} />
+        <ProgressionTab lpHistory={lpHistory} rankColor={rankColor} t={t} />
       )}
 
       {/* TAB CONTENT: LIVE GAME */}

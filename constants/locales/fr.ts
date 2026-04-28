@@ -71,7 +71,8 @@ export const FR = {
     stats: "Stats",
     damageDealt: "Dégâts Infligés",
     footerTitle: "Stats Of Legends",
-    footerTagline: "La plateforme d'analyse nouvelle génération pour League of Legends. Optimisez vos builds, comprenez vos erreurs et grimpez le ladder grâce à Stats Of Legends, l'outil indispensable pour sublimer vos performances.",
+    footerTagline: "Plateforme d'analyse next-gen pour League of Legends. Optimise tes builds, comprends tes erreurs, et grimpe le ladder avec Stats Of Legends, l'outil indispensable pour sublimer tes performances.",
+    navigation: "Navigation",
     navHome: "Accueil",
     navBuilder: "Builder Noxus",
     navLeaderboard: "Classement",
@@ -151,5 +152,9 @@ export const FR = {
     counterPicksColumn: "Counter Picks",
     trendColumn: "Tendance",
     metaTierList: "Méta Tier List",
-    leaderboardDesc: "Les meilleurs joueurs de {region}. Atteignez le sommet et devenez une Légende."
+    leaderboardDesc: "Les meilleurs joueurs de {region}. Atteignez le sommet et devenez une Légende.",
+    navBuilder: "Builder Noxus",
+    lpHistoryTitle: "Progression LP ({days} Jours)",
+    lpHistoryDesc: "Historique de vos gains et pertes de LP en Ranked Solo/Duo.",
+    noHistoryData: "Aucune donnée d'historique disponible pour le moment."
 };

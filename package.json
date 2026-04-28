@@ -7,6 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "worker": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/worker.ts",
     "job:leaderboard": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/trigger_leaderboard_update.ts",
     "backfill:score": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/backfill_legend_score.ts"
@@ -28,18 +30,25 @@
   "devDependencies": {
     "@prisma/client": "^5.10.2",
     "@tailwindcss/postcss": "^4.1.18",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.0.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.23",
     "dotenv": "^17.2.3",
     "eslint": "9.39.1",
     "eslint-config-next": "^16.1.0",
+    "jsdom": "^29.1.0",
     "postcss": "^8.5.6",
     "prisma": "^5.10.2",
     "tailwindcss": "^4.1.18",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.5"
   }
 }

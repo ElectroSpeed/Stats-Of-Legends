@@ -51,7 +51,7 @@ export const Footer = () => {
                     {/* NAV */}
                     <div>
                         <h4 className="text-white text-xs font-bold uppercase mb-4 tracking-widest">
-                            Navigation
+                            {translation.navigation}
                         </h4>
 
                         <ul className="space-y-2 text-sm text-gray-400">

@@ -41,7 +41,7 @@ export const NavigationBlocks = () => {
                     >
                         <FeatureCard
                             icon={<Hammer className="w-12 h-12 mx-auto text-lol-red" />}
-                            title="Builder Noxus"
+                            title={translation.navBuilder || "Builder Noxus"}
                             desc={translation.builderDesc}
                             color="red"
                         />

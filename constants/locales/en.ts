@@ -72,6 +72,7 @@ export const EN = {
     damageDealt: "Damage Dealt",
     footerTitle: "Stats Of Legends",
     footerTagline: "Next-generation analytics platform for League of Legends. Optimize your builds, understand your mistakes, and climb the ladder with Stats Of Legends, the essential tool to elevate your performance.",
+    navigation: "Navigation",
     navHome: "Home",
     navBuilder: "Noxus Builder",
     navLeaderboard: "Leaderboard",
@@ -151,5 +152,9 @@ export const EN = {
     counterPicksColumn: "Counter Picks",
     trendColumn: "Trend",
     metaTierList: "Meta Tier List",
-    leaderboardDesc: "The best players in {region}. Rise to the top and become a Legend."
+    leaderboardDesc: "The best players in {region}. Rise to the top and become a Legend.",
+    navBuilder: "Noxus Builder",
+    lpHistoryTitle: "LP Progression ({days} Days)",
+    lpHistoryDesc: "History of your LP gains and losses in Ranked Solo/Duo.",
+    noHistoryData: "No history data available at the moment."
 };
