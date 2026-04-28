@@ -4,7 +4,7 @@ import { SummonerService, QUEUE_SOLO, QUEUE_FLEX } from '../../../services/Summo
 
 import { MatchHistoryService } from '../../../services/MatchHistoryService';
 import { AggregationService } from '../../../services/AggregationService';
-import { CURRENT_PATCH } from '../../../constants';
+import { DataDragonService } from '../../../services/DataDragonService';
 import { SummonerProfile } from '../../../types';
 
 function isValidRegion(region: string): region is keyof typeof PLATFORM_MAP {
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     const region = rawRegion;
 
     // 1. Get or Update Summoner
-    const dbSummoner = await SummonerService.getOrUpdateSummoner(name, tag, region, forceUpdate);
+    let dbSummoner = await SummonerService.getOrUpdateSummoner(name, tag, region, forceUpdate);
 
     if (!dbSummoner) {
       return NextResponse.json({ error: 'Summoner not found' }, { status: 404 });
@@ -48,19 +48,54 @@ export async function GET(req: NextRequest) {
 
     const puuid = dbSummoner.puuid;
 
-    // 2. Update Matches (Only if forced or never fetched)
-    const shouldUpdateMatches = forceUpdate || !dbSummoner.lastMatchFetch;
+    // 2. Cooldown & AutoRefresh Logic
+    let shouldUpdateMatches = false;
+    let cooldownError = false;
+    let minutesLeft = 0;
+
+    const lastFetch = dbSummoner.lastMatchFetch ? new Date(dbSummoner.lastMatchFetch).getTime() : 0;
+    const now = Date.now();
+    const isCacheExpired = !dbSummoner.lastMatchFetch || (now - lastFetch > 10 * 60 * 1000); // 10 minutes
+
+    if (forceUpdate) {
+      if (isCacheExpired) {
+        shouldUpdateMatches = true;
+      } else {
+        cooldownError = true;
+        minutesLeft = Math.ceil((10 * 60 * 1000 - (now - lastFetch)) / 60000);
+      }
+    } else {
+      // Auto-Refresh (OP.GG Style) when looking at older profile
+      // Instead of holding the page load hostage, we tell the frontend to visually trigger an "Update" button press!
+      if (isCacheExpired) {
+        meta.needsAutoRefresh = true;
+      }
+    }
+
+    if (cooldownError) {
+      return NextResponse.json({ error: 'COOLDOWN', minutesLeft }, { status: 429 });
+    }
+
     if (shouldUpdateMatches) {
-      // PROGRESSIVE LOADING: Fire and forget
-      MatchHistoryService.updateMatches(puuid, region, dbSummoner, forceUpdate)
-        .catch(err => console.error('Background update failed', err));
+      // Wait for match update to finish to avoid Vercel Lambda killing the Prisma connection
+      try {
+        await MatchHistoryService.updateMatches(puuid, region, dbSummoner, forceUpdate);
+        
+        // RE-FETCH dbSummoner to inject the fresh timestamps into the frontend payload
+        const refreshedSummoner = await SummonerService.getOrUpdateSummoner(name, tag, region, false);
+        if (refreshedSummoner) {
+            dbSummoner = refreshedSummoner;
+        }
+      } catch (err) {
+        console.error('Match update failed', err);
+      }
     }
 
     // 3. Get Matches for Display
     const matches = await MatchHistoryService.getMatchesForDisplay(puuid);
 
     // 4. Aggregations
-    const latestVersion = CURRENT_PATCH;
+    const latestVersion = await DataDragonService.getLatestPatch();
     const { champions, heatmap, teammates, lpHistory, performance } = AggregationService.calculateAggregations(matches, dbSummoner, latestVersion);
 
     const profile: SummonerProfile = {

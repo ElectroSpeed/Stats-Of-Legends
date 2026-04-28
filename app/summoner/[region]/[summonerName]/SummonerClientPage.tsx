@@ -12,6 +12,7 @@ import { OverviewTab } from './OverviewTab';
 import { ProgressionTab } from './ProgressionTab';
 import { useSummonerData } from '@/hooks/useSummonerData';
 import { SummonerPageSkeleton } from '@/components/skeletons/SummonerPageSkeleton';
+import { useLanguage } from '@/app/LanguageContext';
 
 const INITIAL_VISIBLE_MATCHES = 10;
 const TAB_ICON_SIZE = 16;
@@ -34,10 +35,10 @@ export default function SummonerClientPage({ params }: { params: { region: strin
 
   const [profileTab, setProfileTab] = useState<'overview' | 'champions' | 'live' | 'progression'>('overview');
   const [matchFilter, setMatchFilter] = useState<'ALL' | 'SOLO' | 'FLEX'>('ALL');
-  const [currentLang] = useState<Language>('FR');
+  const { lang: currentLang } = useLanguage();
   const [visibleMatches, setVisibleMatches] = useState(INITIAL_VISIBLE_MATCHES);
 
-  const t = TRANSLATIONS[currentLang];
+  const t = TRANSLATIONS[currentLang as keyof typeof TRANSLATIONS] || TRANSLATIONS.FR;
 
   const mapGameMode = (m: Match): 'SOLO' | 'FLEX' | 'OTHER' => {
     const mode: any = m.gameMode;
@@ -98,7 +99,7 @@ export default function SummonerClientPage({ params }: { params: { region: strin
       {updating && (
         <div className="mt-2 mb-4 text-xs text-gray-400 flex items-center gap-2">
           <span className="w-3 h-3 rounded-full border-2 border-lol-gold border-t-transparent animate-spin"></span>
-          <span>Mise à jour des données...</span>
+          <span>{t.loading || "Mise à jour des données..."}</span>
         </div>
       )}
 
@@ -106,8 +107,18 @@ export default function SummonerClientPage({ params }: { params: { region: strin
       <div className="flex gap-6 border-b border-white/5 mb-8">
         <TabButton active={profileTab === 'overview'} onClick={() => setProfileTab('overview')} icon={<LayoutDashboard size={TAB_ICON_SIZE} />} label={t.overview} />
         <TabButton active={profileTab === 'champions'} onClick={() => setProfileTab('champions')} icon={<Sword size={TAB_ICON_SIZE} />} label={t.champions} />
-        <TabButton active={profileTab === 'progression'} onClick={() => setProfileTab('progression')} icon={<TrendingUp size={TAB_ICON_SIZE} />} label="Progression LP" />
-        <TabButton active={profileTab === 'live'} onClick={() => setProfileTab('live')} icon={<Radio size={TAB_ICON_SIZE} />} label={t.liveGame} />
+        <TabButton active={profileTab === 'progression'} onClick={() => setProfileTab('progression')} icon={<TrendingUp size={TAB_ICON_SIZE} />} label={t.lpHistory || "Progression LP"} />
+        {'activeGameId' in profile && profile.activeGameId ? (
+          <button
+            onClick={() => setProfileTab('live')}
+            className={`flex items-center gap-2 pb-4 text-sm font-bold uppercase tracking-wider border-b-2 transition-all ${profileTab === 'live' ? 'text-lol-gold border-lol-gold' : 'text-gray-500 border-transparent hover:text-white'}`}
+          >
+            <Radio size={TAB_ICON_SIZE} />
+            <span className="hidden sm:inline">{t.liveGame || 'Partie en direct'}</span>
+          </button>
+        ) : (
+          <TabButton active={profileTab === 'live'} onClick={() => setProfileTab('live')} icon={<Radio size={TAB_ICON_SIZE} />} label={t.liveGame} />
+        )}
       </div>
 
       {/* TAB CONTENT: OVERVIEW */}
@@ -134,7 +145,7 @@ export default function SummonerClientPage({ params }: { params: { region: strin
 
       {/* TAB CONTENT: PROGRESSION LP */}
       {profileTab === 'progression' && (
-        <ProgressionTab lpHistory={lpHistory} rankColor={rankColor} />
+        <ProgressionTab lpHistory={lpHistory} rankColor={rankColor} t={t} />
       )}
 
       {/* TAB CONTENT: LIVE GAME */}

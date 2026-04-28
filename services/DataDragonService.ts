@@ -11,6 +11,16 @@ const SPELL_KEYS_MAP = ['Q', 'W', 'E', 'R'];
 
 export class DataDragonService {
 
+    static async getLatestPatch(): Promise<string> {
+        try {
+            const res = await fetch('https://ddragon.leagueoflegends.com/api/versions.json', { next: { revalidate: 3600 } });
+            const versions = await res.json();
+            return versions[0] || CURRENT_PATCH;
+        } catch {
+            return CURRENT_PATCH;
+        }
+    }
+
     private static approximateBaseFromTooltip(spell: any): number[] {
         const tooltip: string = spell.tooltip || '';
         const dataValues = spell.datavalues || spell.dataValues || {};
@@ -106,7 +116,7 @@ export class DataDragonService {
 
     static async getChampions(patch: string = 'latest', locale: string = 'en_US') {
         if (patch === 'latest') {
-            patch = CURRENT_PATCH;
+            patch = await this.getLatestPatch();
         }
 
         if (DATA_BASE) {

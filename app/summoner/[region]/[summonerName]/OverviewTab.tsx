@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { PerformanceRadar } from '../../../../components/PerformanceRadar';
 import { ActivityHeatmap } from '../../../../components/ActivityHeatmap';
@@ -43,7 +42,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <div className="h-72 bg-[#121212] border border-white/5 rounded-[2rem] p-6 shadow-xl relative">
                     <h3 className={`text-gray-400 text-xs uppercase font-bold tracking-widest mb-4 
                         absolute top-6 left-6 z-10`}>
-                        Radar Stats
+                        {t.radarStats || "Radar Stats"}
                     </h3>
                     <PerformanceRadar metrics={performance} />
                 </div>
@@ -74,7 +73,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                             </div>
                         ))}
                         {champions.length === 0 && (
-                            <div className="text-xs text-gray-600">Aucun champion récent trouvé.</div>
+                            <div className="text-xs text-gray-600">{t.noChampionsFound || "Aucun champion récent trouvé."}</div>
                         )}
                     </div>
                 </div>
@@ -95,9 +94,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-white font-display">{t.matchHistory}</h3>
                     <div className="flex gap-2 text-xs">
-                        <FilterButton label="All" active={matchFilter === 'ALL'} onClick={() => setMatchFilter('ALL')} />
-                        <FilterButton label="Ranked Solo" active={matchFilter === 'SOLO'} onClick={() => setMatchFilter('SOLO')} />
-                        <FilterButton label="Ranked Flex" active={matchFilter === 'FLEX'} onClick={() => setMatchFilter('FLEX')} />
+                        <FilterButton label={t.allRanked || "All"} active={matchFilter === 'ALL'} onClick={() => setMatchFilter('ALL')} />
+                        <FilterButton label={t.rankedSoloDuo || "Ranked Solo"} active={matchFilter === 'SOLO'} onClick={() => setMatchFilter('SOLO')} />
+                        <FilterButton label={t.rankedFlex || "Ranked Flex"} active={matchFilter === 'FLEX'} onClick={() => setMatchFilter('FLEX')} />
                     </div>
                 </div>
 

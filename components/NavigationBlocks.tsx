@@ -1,98 +1,96 @@
 'use client';
 
+import { Bot, Radio, Hammer } from "lucide-react";
 import React from 'react';
 import { useLanguage } from '@/app/LanguageContext';
 import { TRANSLATIONS } from '@/constants';
 import { SafeLink } from '@/components/ui/SafeLink';
 
-const CARD_BG_COLOR = '#121212';
-
 export const NavigationBlocks = () => {
     const { lang } = useLanguage();
-    const t = TRANSLATIONS[lang];
+    const translation = TRANSLATIONS[lang];
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <section className="relative bg-[#111111] py-25">
 
-                <FeatureCard
-                    icon="⚡"
-                    title={t.realTime}
-                    desc={t.realTimeDesc}
-                    color="purple"
-                />
+            <div className="absolute top-0 left-0 w-full h-px border-t border-white/10" />
 
-                <FeatureCard
-                    icon="🤖"
-                    title={t.aiCoach}
-                    desc={t.aiCoachDesc}
-                    color="gold"
-                />
+            <div className="max-w-7xl mx-auto px-15">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 text-center">
 
-                <SafeLink href="/builder" className="block h-full">
+                    {/* Réel Temps */}
                     <FeatureCard
-                        icon="⚔️"
-                        title="Builder Noxus"
-                        desc={t.builderDesc}
-                        color="red"
+                        icon={<Radio className="w-12 h-12 mx-auto text-lol-gold" />}
+                        title={translation.realTime}
+                        desc={translation.realTimeDesc}
+                        color="gold"
                     />
-                </SafeLink>
 
+                    {/* AI Coach */}
+                    <FeatureCard
+                        icon={<Bot className="w-12 h-12 mx-auto text-amber-500" />}
+                        title={translation.aiCoach}
+                        desc={translation.aiCoachDesc}
+                        color="amber"
+                    />
+
+                    {/* Builder */}
+                    <SafeLink
+                        href="/builder"
+                        className="block h-full sm:col-span-2 lg:col-span-1 flex justify-center"
+                    >
+                        <FeatureCard
+                            icon={<Hammer className="w-12 h-12 mx-auto text-lol-red" />}
+                            title={translation.navBuilder || "Builder Noxus"}
+                            desc={translation.builderDesc}
+                            color="red"
+                        />
+                    </SafeLink>
+
+                </div>
             </div>
-        </div>
+        </section>
     );
 };
 
 interface FeatureCardProps {
-    icon: string;
+    icon: React.ReactNode;
     title: string;
     desc: string;
-    color: 'gold' | 'red' | 'purple';
+    color: 'gold' | 'red' | 'amber';
 }
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, desc, color }) => {
-    const colorClasses = {
-        gold: {
-            border: 'hover:border-lol-gold/50',
-            bar: 'bg-lol-gold'
-        },
-        red: {
-            border: 'hover:border-red-500/50',
-            bar: 'bg-lol-red'
-        },
-        purple: {
-            border: 'hover:border-purple-500/50',
-            bar: 'bg-lol-hextech'
-        }
+
+    const colorMap = {
+        gold: `
+            border-lol-gold/80
+            hover:border-lol-gold
+            hover:shadow-[0_0_90px_rgba(200,170,110,0.2)]
+        `,
+        amber: `
+            border-[#FE9A00]/60
+            hover:border-[#FE9A00]/80
+            hover:shadow-[0_0_90px_rgba(184,95,67,0.25)]
+        `,
+        red: `
+            border-lol-red/80
+            hover:border-lol-red
+            hover:shadow-[0_0_90px_rgba(194,48,48,0.2)]
+        `
     };
 
-    const classes = colorClasses[color];
-
     return (
-        <div
-            className={`
-        h-full p-6 rounded-[2rem]
-        bg-[#121212]
-        border border-white/5
-        ${classes.border}
-        transition
-        group
-        cursor-pointer
-        relative
-        overflow-hidden
-      `}
-        >
-            <div className={`absolute top-0 left-0 w-full h-1 ${classes.bar}`} />
-
-            <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
+        <div className={`relative h-full w-full max-w-sm mx-auto p-10 rounded-3xl bg-[#18181b] border-2 transition-all duration-300 hover:-translate-y-3 group cursor-pointer ${colorMap[color]}`}>
+            <div className="text-5xl mb-6">
                 {icon}
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-2 font-display uppercase tracking-wide">
+            <h3 className="text-xl font-bold text-white mb-3 font-display uppercase tracking-wide">
                 {title}
             </h3>
 
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 text-sm leading-relaxed">
                 {desc}
             </p>
         </div>

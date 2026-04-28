@@ -119,7 +119,7 @@ export const ItemCatalog: React.FC<ItemCatalogProps> = ({ items, onItemSelect, t
 
       {/* Mobile Hint */}
       <div className="md:hidden text-center text-[10px] text-gray-500 flex items-center justify-center gap-1 animate-pulse">
-        <Hand className="w-3 h-3" /> Tap item to equip
+        <Hand className="w-3 h-3" /> {t.tapItemToEquip || "Tap item to equip"}
       </div>
 
       {/* Item List (Virtualized) */}
@@ -162,7 +162,7 @@ export const ItemCatalog: React.FC<ItemCatalogProps> = ({ items, onItemSelect, t
                     val ? <div key={key} className="flex justify-between uppercase text-[10px] tracking-wider font-bold"><span>{key}</span> <span className="text-white">+{val}</span></div> : null
                   ))}
                 </div>
-                {item.passive && <div className="text-[10px] text-gray-400 border-t border-gray-800 pt-2"><span className="text-lol-gold font-bold">Passif:</span> {item.passive}</div>}
+                {item.passive && <div className="text-[10px] text-gray-400 border-t border-gray-800 pt-2"><span className="text-lol-gold font-bold">{t.passive || "Passif:"}</span> {item.passive}</div>}
                 <div className="text-[10px] text-gray-500 mt-2 italic">{item.description}</div>
               </div>
             </button>

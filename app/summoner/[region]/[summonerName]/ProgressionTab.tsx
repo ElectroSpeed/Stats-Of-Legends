@@ -1,10 +1,10 @@
-
 import { TrendingUp } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
 interface ProgressionTabProps {
     lpHistory: any[];
     rankColor: string;
+    t: any;
 }
 
 const DAYS_HISTORY = 30;
@@ -16,13 +16,13 @@ const ICON_SIZE = 48;
 const MARGIN_TOP = 20;
 const MARGIN_RIGHT = 30;
 
-export const ProgressionTab: React.FC<ProgressionTabProps> = ({ lpHistory, rankColor }) => {
+export const ProgressionTab: React.FC<ProgressionTabProps> = ({ lpHistory, rankColor, t }) => {
     return (
         <div className="bg-[#121212] border border-white/5 rounded-[2rem] p-8 shadow-xl animate-fadeIn">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h3 className="text-xl font-bold text-white font-display mb-1">Progression LP ({DAYS_HISTORY} Jours)</h3>
-                    <p className="text-sm text-gray-500">Historique de vos gains et pertes de LP en Ranked Solo/Duo.</p>
+                    <h3 className="text-xl font-bold text-white font-display mb-1">{t.lpHistoryTitle?.replace('{days}', String(DAYS_HISTORY)) || `Progression LP (${DAYS_HISTORY} Jours)`}</h3>
+                    <p className="text-sm text-gray-500">{t.lpHistoryDesc || "Historique de vos gains et pertes de LP en Ranked Solo/Duo."}</p>
                 </div>
                 {lpHistory.length > 1 && (
                     <div className={`px-4 py-2 rounded-xl border ${lpHistory[lpHistory.length - 1].lp - lpHistory[0].lp >= 0
@@ -91,7 +91,7 @@ export const ProgressionTab: React.FC<ProgressionTabProps> = ({ lpHistory, rankC
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-gray-500">
                         <TrendingUp size={ICON_SIZE} className="mb-4 opacity-20" />
-                        <p>Aucune donnée d'historique disponible pour le moment.</p>
+                        <p>{t.noHistoryData || "Aucune donnée d'historique disponible pour le moment."}</p>
                     </div>
                 )}
             </div>

@@ -13,8 +13,10 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [lang, setLangState] = useState<Language>("FR");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem("sol_lang") as Language | null;
     if (stored && ["FR", "EN", "ES", "KR"].includes(stored)) {
@@ -34,6 +36,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       window.localStorage.setItem("sol_lang", value);
     }
   };
+
+  if (!mounted) {
+    return <LanguageContext.Provider value={{ lang: "FR", setLang }}>{children}</LanguageContext.Provider>;
+  }
 
   return (
     <LanguageContext.Provider value={{ lang, setLang }}>

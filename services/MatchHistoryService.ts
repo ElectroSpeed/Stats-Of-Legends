@@ -12,6 +12,7 @@ import { getChampionIconUrl, getItemIconUrl, getSpellIconUrl, getRuneIconUrl, ge
 import { CURRENT_PATCH } from '@/constants';
 import { getDurationBucket, calculateWeightedDeaths, calculateLaneStats, generateGraphPoints, processItemBuild } from '@/utils/matchUtils';
 import { Priority } from './RiotGateway';
+import { DataDragonService } from './DataDragonService';
 
 export class MatchHistoryService {
 
@@ -35,63 +36,43 @@ export class MatchHistoryService {
                 }
             }
 
-            // 1. Check for NEW matches (Top of the list)
-            const recentMatchIds = await fetchMatchIds(puuid, routing, 0, 20, priority);
+            // 1. Fetch Deep Match History from Riot
+            const RECENT_TO_FETCH = 100;
+            const recentMatchIds = await fetchMatchIds(puuid, routing, 0, RECENT_TO_FETCH, priority);
+            
             const existingMatches = await prisma.match.findMany({
                 where: { id: { in: recentMatchIds } },
                 select: { id: true },
             });
             const existingIds = new Set(existingMatches.map(m => m.id));
-            const newMatchIds = recentMatchIds.filter(id => !existingIds.has(id));
+            
+            // Riot's array is strictly chronological (newest to oldest).
+            const missingMatchIds = recentMatchIds.filter(id => !existingIds.has(id));
 
-            let matchesToProcess: string[] = [];
+            // Throttle to 10 matches per processing batch to prevent Serverless/Riot timeouts
+            const matchesToProcess = missingMatchIds.slice(0, 10);
 
-            if (existingCount === 0) {
-                // FIRST LOAD: Load 10 matches immediately
-                if (newMatchIds.length > 0) {
-                    matchesToProcess.push(...newMatchIds.slice(0, 10));
-                }
-            } else if (newMatchIds.length >= 5) {
-                // Scenario A: >= 5 new matches
-                // Load 5 new + 5 old
-                matchesToProcess.push(...newMatchIds.slice(0, 5));
-
-                // Fetch 5 older matches (extending history)
-                // We offset by existingCount + the number of new matches we detected (to skip them)
-                const start = existingCount + newMatchIds.length;
-                const oldMatchIds = await fetchMatchIds(puuid, routing, start, 5, priority);
-                matchesToProcess.push(...oldMatchIds);
-            } else if (newMatchIds.length > 0) {
-                // Scenario A (Partial): < 5 new matches
-                // Load all new + 5 old
-                matchesToProcess.push(...newMatchIds);
-
-                const start = existingCount + newMatchIds.length;
-                const oldMatchIds = await fetchMatchIds(puuid, routing, start, 5, priority);
-                matchesToProcess.push(...oldMatchIds);
-            } else {
-                // Scenario B: 0 new matches
-                // Load 10 old matches
-                const oldMatchIds = await fetchMatchIds(puuid, routing, existingCount, 10, priority);
-                matchesToProcess.push(...oldMatchIds);
+            if (matchesToProcess.length === 0) {
+                console.log("[MatchHistory] Early fast-exit, updating lastFetch timestamp!");
+                // No matches missing within the top 100 timeframe
+                // We MUST save the fetch date to protect against spam APIs.
+                await prisma.summoner.update({
+                    where: { puuid: puuid },
+                    data: {
+                        lastMatchFetch: new Date(),
+                        updatedAt: new Date(),
+                        lastUpdateLog: "Aucune nouvelle partie à charger."
+                    },
+                });
+                return;
             }
 
-            // Filter duplicates and already existing (for the old ones)
-            matchesToProcess = Array.from(new Set(matchesToProcess));
-
-            // Double check we don't re-process existing matches (in case offset logic overlapped)
-            const alreadySaved = await prisma.match.findMany({
-                where: { id: { in: matchesToProcess } },
-                select: { id: true }
-            });
-            const alreadySavedIds = new Set(alreadySaved.map(m => m.id));
-            matchesToProcess = matchesToProcess.filter(id => !alreadySavedIds.has(id));
-
-            if (matchesToProcess.length === 0) return;
-
             let skippedCount = 0;
+            let hitOldPatch = false;
 
             const processMatch = async (matchId: string) => {
+                if (hitOldPatch) return null; // Immediately abort if marked by prior sequence
+
                 try {
                     const matchUrl = `https://${routing}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
                     const r = await riotFetchRaw(matchUrl, priority);
@@ -99,11 +80,13 @@ export class MatchHistoryService {
                     const matchData = JSON.parse(r.body || '{}');
 
                     // PATCH CHECK
-                    const currentMajorMinor = CURRENT_PATCH.split('.').slice(0, 2).join('.');
+                    const latestPatch = await DataDragonService.getLatestPatch();
+                    const currentMajorMinor = latestPatch.split('.').slice(0, 2).join('.');
                     const matchVersion = matchData.info.gameVersion;
 
                     if (!matchVersion.startsWith(currentMajorMinor)) {
                         skippedCount++;
+                        hitOldPatch = true; // Signal the rest of the array mapped concurrently to halt!
                         return null;
                     }
 
@@ -163,9 +146,9 @@ export class MatchHistoryService {
             take: count,
         });
 
-        const latestVersion = CURRENT_PATCH;
+        const latestVersion = await DataDragonService.getLatestPatch();
 
-        const matches = await Promise.all(summonerMatches.map(async (sm) => {
+        const matches = await mapWithConcurrency(summonerMatches, 3, async (sm) => {
             const mj = sm.match.jsonData as unknown as RiotMatch;
             const formatted = await this.formatMatchData(mj, puuid, latestVersion, sm.match.averageRank);
 
@@ -181,7 +164,7 @@ export class MatchHistoryService {
                 }
             }
             return formatted;
-        }));
+        });
 
         return matches;
     }
@@ -434,68 +417,72 @@ export class MatchHistoryService {
 
         // Bulk fetch champion stats
         const championNames = participants.map((p: any) => p.championName);
-        const dbChampStats = await prisma.championStat.findMany({
-            where: {
-                championId: { in: championNames },
-                tier: tier,
-                patch: version.split('.').slice(0, 2).join('.'),
-                durationBucket: durationBucket,
-            }
-        });
+        let dbChampStats: any[] = [];
+        let roleStatsMap: Record<string, any> = {};
+        let myMatchupStats: any = null;
 
-        //  Fetch Role Averages (Aggregated)
-        const roleAggregates = await prisma.championStat.groupBy({
-            by: ['role'],
-            where: {
-                tier: tier,
-                patch: version.split('.').slice(0, 2).join('.'),
-                durationBucket: durationBucket,
-            },
-            _sum: {
-                matches: true,
-                totalKills: true,
-                totalDeaths: true,
-                totalAssists: true,
-                totalDamage: true,
-                totalGold: true,
-                totalCs: true,
-                totalVision: true,
-                totalObjectiveParticipation: true,
-                totalDuration: true
-            }
-        });
-
-        const roleStatsMap: Record<string, any> = {};
-        roleAggregates.forEach((r: any) => {
-            const m = r._sum.matches || 1;
-            const d = (r._sum.totalDuration || 1) / 60; // Total minutes across all matches
-            roleStatsMap[r.role] = {
-                kda: (r._sum.totalKills + r._sum.totalAssists) / Math.max(1, r._sum.totalDeaths),
-                damage: r._sum.totalDamage / d, // DPM
-                gold: r._sum.totalGold / d, // GPM
-                cs: r._sum.totalCs / d, // CSM
-                vision: r._sum.totalVision / d, // VSPM
-                objective: r._sum.totalObjectiveParticipation / m,
-                utility: 5 // Default utility for role avg (hard to aggregate)
-            };
-        });
-
-        // Fetch Matchup Stats for ME
-        let myMatchupStats = null;
-        const myOpponent = participants.find((p: any) => p.teamPosition === me.teamPosition && p.teamId !== me.teamId);
-        if (myOpponent) {
-            myMatchupStats = await prisma.matchupStat.findUnique({
+        if (!cachedScores) {
+            dbChampStats = await prisma.championStat.findMany({
                 where: {
-                    championId_opponentId_role_tier_patch_durationBucket: {
-                        championId: me.championName,
-                        opponentId: myOpponent.championName,
-                        role: me.teamPosition || 'MID',
-                        tier: tier,
-                        patch: version.split('.').slice(0, 2).join('.'),
-                        durationBucket: durationBucket
-                    }
+                    championId: { in: championNames },
+                    tier: tier,
+                    patch: version.split('.').slice(0, 2).join('.'),
+                    durationBucket: durationBucket,
                 }
             });
+
+            //  Fetch Role Averages (Aggregated)
+            const roleAggregates = await prisma.championStat.groupBy({
+                by: ['role'],
+                where: {
+                    tier: tier,
+                    patch: version.split('.').slice(0, 2).join('.'),
+                    durationBucket: durationBucket,
+                },
+                _sum: {
+                    matches: true,
+                    totalKills: true,
+                    totalDeaths: true,
+                    totalAssists: true,
+                    totalDamage: true,
+                    totalGold: true,
+                    totalCs: true,
+                    totalVision: true,
+                    totalObjectiveParticipation: true,
+                    totalDuration: true
+                }
+            });
+
+            roleAggregates.forEach((r: any) => {
+                const m = r._sum.matches || 1;
+                const d = (r._sum.totalDuration || 1) / 60; // Total minutes across all matches
+                roleStatsMap[r.role] = {
+                    kda: (r._sum.totalKills + r._sum.totalAssists) / Math.max(1, r._sum.totalDeaths),
+                    damage: r._sum.totalDamage / d, // DPM
+                    gold: r._sum.totalGold / d, // GPM
+                    cs: r._sum.totalCs / d, // CSM
+                    vision: r._sum.totalVision / d, // VSPM
+                    objective: r._sum.totalObjectiveParticipation / m,
+                    utility: 5 // Default utility for role avg (hard to aggregate)
+                };
+            });
+
+            // Fetch Matchup Stats for ME
+            const myOpponent = participants.find((p: any) => p.teamPosition === me.teamPosition && p.teamId !== me.teamId);
+            if (myOpponent) {
+                myMatchupStats = await prisma.matchupStat.findUnique({
+                    where: {
+                        championId_opponentId_role_tier_patch_durationBucket: {
+                            championId: me.championName,
+                            opponentId: myOpponent.championName,
+                            role: me.teamPosition || 'MID',
+                            tier: tier,
+                            patch: version.split('.').slice(0, 2).join('.'),
+                            durationBucket: durationBucket
+                        }
+                    }
+                });
+            }
         }
 
         // Fetch Champion Data for Tags (Classes)
@@ -537,9 +524,11 @@ export class MatchHistoryService {
             const weightedDeaths = participantWeightedDeaths[p.participantId];
 
             let scoreResult;
+            let roleAveragePerformance = undefined;
 
             if (cachedScores && cachedScores[p.puuid]) {
                 scoreResult = cachedScores[p.puuid];
+                roleAveragePerformance = cachedScores[p.puuid].roleAveragePerformance;
             } else {
                 scoreResult = ScoringService.calculateScore({
                     participant: { ...p, challenges: p.challenges },
@@ -553,34 +542,33 @@ export class MatchHistoryService {
                     championClass: championClass,
                     weightedDeaths: weightedDeaths
                 });
-            }
+                
+                // Calculate Role Average Performance (Relative to Champion)
+                if (pRoleStats && pChampStats) {
+                    const getZ = (roleVal: number, champVal: number, stdDevMult: number = 0.4) => {
+                        const stdDev = Math.max(champVal * stdDevMult, 0.1);
+                        return (roleVal - champVal) / stdDev;
+                    };
 
-            // Calculate Role Average Performance (Relative to Champion)
-            let roleAveragePerformance = undefined;
-            if (pRoleStats && pChampStats) {
-                const getZ = (roleVal: number, champVal: number, stdDevMult: number = 0.4) => {
-                    const stdDev = Math.max(champVal * stdDevMult, 0.1);
-                    return (roleVal - champVal) / stdDev;
-                };
+                    const cStats = pChampStats as any;
+                    const cDpm = cStats.totalDamage / ((cStats.totalDuration || 1) / 60);
+                    const cGpm = cStats.totalGold / ((cStats.totalDuration || 1) / 60);
+                    const cCsm = cStats.totalCs / ((cStats.totalDuration || 1) / 60);
+                    const cVis = cStats.totalVision / ((cStats.totalDuration || 1) / 60);
+                    const cKda = (cStats.totalKills + cStats.totalAssists) / Math.max(1, cStats.totalDeaths);
+                    const cObj = cStats.totalObjectiveParticipation / cStats.matches;
 
-                const cStats = pChampStats as any;
-                const cDpm = cStats.totalDamage / ((cStats.totalDuration || 1) / 60);
-                const cGpm = cStats.totalGold / ((cStats.totalDuration || 1) / 60);
-                const cCsm = cStats.totalCs / ((cStats.totalDuration || 1) / 60);
-                const cVis = cStats.totalVision / ((cStats.totalDuration || 1) / 60);
-                const cKda = (cStats.totalKills + cStats.totalAssists) / Math.max(1, cStats.totalDeaths);
-                const cObj = cStats.totalObjectiveParticipation / cStats.matches;
-
-                roleAveragePerformance = {
-                    damage: getZ(pRoleStats.damage, cDpm),
-                    gold: getZ(pRoleStats.gold, cGpm),
-                    cs: getZ(pRoleStats.cs, cCsm),
-                    vision: getZ(pRoleStats.vision, cVis),
-                    kda: getZ(pRoleStats.kda, cKda),
-                    objective: getZ(pRoleStats.objective, cObj),
-                    lane: 0,
-                    utility: 0
-                };
+                    roleAveragePerformance = {
+                        damage: getZ(pRoleStats.damage, cDpm),
+                        gold: getZ(pRoleStats.gold, cGpm),
+                        cs: getZ(pRoleStats.cs, cCsm),
+                        vision: getZ(pRoleStats.vision, cVis),
+                        kda: getZ(pRoleStats.kda, cKda),
+                        objective: getZ(pRoleStats.objective, cObj),
+                        lane: 0,
+                        utility: 0
+                    };
+                }
             }
 
             const legendScore = scoreResult.score;
@@ -684,7 +672,8 @@ export class MatchHistoryService {
                     breakdown: p.legendScoreBreakdown,
                     comparison: p.legendScoreComparison,
                     contribution: p.legendScoreContribution,
-                    sampleSize: p.legendScoreSampleSize
+                    sampleSize: p.legendScoreSampleSize,
+                    roleAveragePerformance: p.roleAveragePerformance
                 };
             });
             

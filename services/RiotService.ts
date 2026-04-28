@@ -51,8 +51,8 @@ const fetchWithRetry = async (url: string, options?: RequestInit) => {
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After');
       const waitTime = retryAfter ? Number.parseInt(retryAfter) * 1000 : 1000;
-      if (waitTime > 120000) {
-        // Propagate very long waits ( > 2 mins) to caller
+      if (waitTime > 20000) {
+        // Propagate very long waits ( > 20 seconds) to caller to avoid Database IDLE Drop (PgBouncer timeout)
         const error: any = new Error('Rate Limit Exceeded');
         error.status = 429;
         error.retryAfter = waitTime;

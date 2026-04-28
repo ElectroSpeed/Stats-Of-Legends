@@ -2,10 +2,20 @@ import { SeasonInfo, Region } from '../types';
 
 export const CURRENT_PATCH = "15.24.1";
 
-export const CURRENT_SEASON_INFO: SeasonInfo = {
-    season: 'Season 2025',
-    split: 'Split 2',
-};
+export const CURRENT_SEASON_INFO: SeasonInfo = (() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-based
+
+    let split = 1;
+    if (month >= 4 && month <= 7) split = 2; // May to Aug
+    else if (month >= 8) split = 3; // Sep to Dec
+
+    return {
+        season: `Season ${year}`,
+        split: `Split ${split}`,
+    };
+})();
 
 export const REGIONS: Region[] = ['EUW', 'NA', 'KR', 'EUNE', 'BR', 'LAN'];
 
