@@ -5,18 +5,6 @@ describe('tierUtils', () => {
 
     describe('getTargetTiers', () => {
 
-        // ==========================================
-        // DÉBUT DU FAUX TEST (À SUPPRIMER)
-        // ==========================================
-        // Ce test force une erreur (true n'est pas false).
-        // Il garantit que Vitest renverra un code d'erreur à la CI.
-        it('doit echouer deliberement pour tester la CI', () => {
-            expect(true).toBe(false);
-        });
-        // ==========================================
-        // FIN DU FAUX TEST
-        // ==========================================
-
         it('should return all tiers for ALL', () => {
             const tiers = getTargetTiers('ALL');
             expect(tiers.includes('IRON')).toBe(true);
