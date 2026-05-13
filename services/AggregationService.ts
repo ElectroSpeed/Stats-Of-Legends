@@ -102,7 +102,7 @@ export class AggregationService {
                 cs: 0, gold: 0, damage: 0,
             });
         }
-        const champ = championsMap.get(champName);
+        const champ = championsMap.get(champName)!;
         champ.matches++;
         if (me.win) champ.wins++;
         champ.kills += me.kills;
@@ -126,7 +126,7 @@ export class AggregationService {
                     matches: 0, wins: 0, puuid: tm.puuid, profileIconId: tm.profileIconId
                 });
             }
-            const t = teammatesMap.get(key);
+            const t = teammatesMap.get(key)!;
             t.matches++;
             if (tm.win) t.wins++;
         });
