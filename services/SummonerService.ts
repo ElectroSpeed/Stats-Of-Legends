@@ -52,49 +52,65 @@ export class SummonerService {
                 // Fetch Account if we don't have PUUID
                 if (!puuid) {
                     account = await fetchRiotAccount(name, tag, routing, 'INTERACTIVE');
+                    if (!account) throw new Error("Account not found");
                     puuid = account.puuid;
                 }
 
                 // Fetch Summoner details
                 summoner = await fetchSummonerByPuuid(puuid!, platform, 'INTERACTIVE');
+                if (!summoner) throw new Error("Summoner details not found");
 
                 // Upsert Summoner
-                dbSummoner = await prisma.summoner.upsert({
-                    where: { puuid: puuid! },
-                    update: {
-                        gameName: account?.gameName || name,
-                        tagLine: account?.tagLine || tag,
-                        profileIconId: summoner.profileIconId,
-                        summonerLevel: summoner.summonerLevel,
-                        accountId: summoner.accountId,
-                        summonerId: summoner.id,
-                        updatedAt: new Date(),
-                        revisionDate: summoner.revisionDate, // Save Riot's revisionDate
-                        views: { increment: 1 }, // Increase popularity ranking
-                    },
-                    create: {
-                        puuid: puuid!,
-                        gameName: account?.gameName || name,
-                        tagLine: account?.tagLine || tag,
-                        profileIconId: summoner.profileIconId,
-                        summonerLevel: summoner.summonerLevel,
-                        accountId: summoner.accountId,
-                        summonerId: summoner.id,
-                        lastMatchFetch: null,
-                        revisionDate: summoner.revisionDate, // Save Riot's revisionDate
-                        views: 1, // First view!
-                    },
-                    include: { ranks: true, snapshots: { orderBy: { timestamp: 'asc' } } },
-                });
+                try {
+                    dbSummoner = await prisma.summoner.upsert({
+                        where: { puuid: puuid! },
+                        update: {
+                            gameName: account?.gameName || name,
+                            tagLine: account?.tagLine || tag,
+                            profileIconId: summoner.profileIconId,
+                            summonerLevel: summoner.summonerLevel,
+                            accountId: summoner.accountId,
+                            summonerId: summoner.id,
+                            updatedAt: new Date(),
+                            revisionDate: summoner.revisionDate,
+                            views: { increment: 1 },
+                        },
+                        create: {
+                            puuid: puuid!,
+                            gameName: account?.gameName || name,
+                            tagLine: account?.tagLine || tag,
+                            profileIconId: summoner.profileIconId,
+                            summonerLevel: summoner.summonerLevel,
+                            accountId: summoner.accountId,
+                            summonerId: summoner.id,
+                            lastMatchFetch: null,
+                            revisionDate: summoner.revisionDate,
+                            views: 1,
+                        },
+                        include: { ranks: true, snapshots: { orderBy: { timestamp: 'asc' } } },
+                    });
+                } catch (upsertErr: any) {
+                    if (upsertErr.code === 'P2002') {
+                        // Race condition: someone else created it. Fetch it.
+                        dbSummoner = await prisma.summoner.findUnique({
+                            where: { puuid: puuid! },
+                            include: { ranks: true, snapshots: { orderBy: { timestamp: 'asc' } } }
+                        });
+                    } else {
+                        throw upsertErr;
+                    }
+                }
 
-                // Fetch Ranks
-                await this.updateRanks(puuid!, platform, dbSummoner);
+                if (puuid) {
+                    // Fetch Ranks
+                    await this.updateRanks(puuid, platform, dbSummoner);
 
-                // Refresh dbSummoner after rank update
-                dbSummoner = await prisma.summoner.findUnique({
-                    where: { puuid: puuid! },
-                    include: { ranks: true, snapshots: { orderBy: { timestamp: 'asc' } } }
-                });
+                    // Refresh dbSummoner after rank update
+                    dbSummoner = await prisma.summoner.findUnique({
+                        where: { puuid: puuid! },
+                        include: { ranks: true, snapshots: { orderBy: { timestamp: 'asc' } } }
+                    });
+                }
 
             } catch (err: any) {
                 console.error('Error updating summoner:', err);

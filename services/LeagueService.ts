@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { RiotService } from './RiotService';
+import { RiotService, PLATFORM_MAP } from './RiotService';
 import { LeaderboardService } from './LeaderboardService';
 
 export const LeagueService = {
@@ -8,10 +8,11 @@ export const LeagueService = {
      * This is a heavy operation and should be called via a background job or cron.
      */
     updateLeaderboard: async (region: string = 'EUW1') => {
-        const platform = 'euw1'; // Map region to platform if needed
+        const startTime = new Date();
+        const platform = PLATFORM_MAP[region] || 'euw1'; 
         const queue = 'RANKED_SOLO_5x5';
 
-        console.log(`[LeagueService] Starting leaderboard update for ${region}...`);
+        console.log(`[LeagueService] Starting leaderboard update for ${region} (Platform: ${platform})...`);
 
         // 1. Fetch Top Tiers
         try {
@@ -26,6 +27,17 @@ export const LeagueService = {
             const master = await RiotService.getMasterLeague(platform, queue);
             await LeagueService.processLeagueEntries(region, 'MASTER', master.entries);
             console.log(`[LeagueService] Processed ${master.entries.length} Master entries.`);
+
+            // 2. CLEANUP: Remove players who are no longer in Master+ (Stale data from old patch/run)
+            console.log(`[LeagueService] Cleaning up stale leaderboard entries for ${region}...`);
+            const deleted = await prisma.summonerRank.deleteMany({
+                where: {
+                    queueType: queue,
+                    tier: { in: ['CHALLENGER', 'GRANDMASTER', 'MASTER'] },
+                    updatedAt: { lt: startTime }
+                }
+            });
+            console.log(`[LeagueService] Cleanup complete. Removed ${deleted.count} stale entries.`);
 
         } catch (error) {
             console.error('[LeagueService] Error updating leaderboard:', error);
@@ -91,28 +103,65 @@ export const LeagueService = {
                     const regionRouting = 'europe';
                     const riotAccount = await RiotService.fetchAccountByPuuid(entry.puuid, regionRouting);
 
-                    const saved = await prisma.summoner.upsert({
-                        where: { puuid: entry.puuid },
-                        update: {
-                            summonerId: riotSummoner.id,
-                            accountId: riotSummoner.accountId,
-                            profileIconId: riotSummoner.profileIconId,
-                            summonerLevel: riotSummoner.summonerLevel,
-                            gameName: riotAccount.gameName || entry.summonerName || 'Unknown',
-                            tagLine: riotAccount.tagLine || region,
-                            updatedAt: new Date()
-                        },
-                        create: {
-                            puuid: entry.puuid,
-                            summonerId: riotSummoner.id,
-                            accountId: riotSummoner.accountId,
-                            gameName: riotAccount.gameName || entry.summonerName || 'Unknown',
-                            tagLine: riotAccount.tagLine || region,
-                            profileIconId: riotSummoner.profileIconId,
-                            summonerLevel: riotSummoner.summonerLevel,
+                    const performUpsert = async () => {
+                        return await prisma.summoner.upsert({
+                            where: { puuid: entry.puuid },
+                            update: {
+                                summonerId: riotSummoner.id,
+                                accountId: riotSummoner.accountId,
+                                profileIconId: riotSummoner.profileIconId,
+                                summonerLevel: riotSummoner.summonerLevel,
+                                gameName: riotAccount.gameName || entry.summonerName || 'Unknown',
+                                tagLine: riotAccount.tagLine || region,
+                                updatedAt: new Date()
+                            },
+                            create: {
+                                puuid: entry.puuid,
+                                summonerId: riotSummoner.id,
+                                accountId: riotSummoner.accountId,
+                                gameName: riotAccount.gameName || entry.summonerName || 'Unknown',
+                                tagLine: riotAccount.tagLine || region,
+                                profileIconId: riotSummoner.profileIconId,
+                                summonerLevel: riotSummoner.summonerLevel,
+                            }
+                        });
+                    };
+
+                    let saved;
+                    try {
+                        saved = await performUpsert();
+                    } catch (err: any) {
+                        if (err.code === 'P2002' && err.meta?.target?.includes('gameName')) {
+                            // Name conflict: Someone else in our DB has this name.
+                            // We need to find them and "rename" them to free up the name.
+                            const conflictingSummoner = await prisma.summoner.findUnique({
+                                where: {
+                                    gameName_tagLine: {
+                                        gameName: riotAccount.gameName || entry.summonerName || 'Unknown',
+                                        tagLine: riotAccount.tagLine || region
+                                    }
+                                }
+                            });
+
+                            if (conflictingSummoner && conflictingSummoner.puuid !== entry.puuid) {
+                                console.log(`[LeagueService] Resolving name conflict: Moving name from ${conflictingSummoner.puuid} to ${entry.puuid}`);
+                                await prisma.summoner.update({
+                                    where: { puuid: conflictingSummoner.puuid },
+                                    data: {
+                                        gameName: `OLD_${conflictingSummoner.gameName}`,
+                                        tagLine: `OLD_${conflictingSummoner.tagLine}`
+                                    }
+                                });
+                                // Retry the upsert
+                                saved = await performUpsert();
+                            } else {
+                                throw err;
+                            }
+                        } else {
+                            throw err;
                         }
-                    });
-                    existingMap.set(entry.puuid, saved);
+                    }
+                    if (saved) existingMap.set(entry.puuid, saved);
                 } catch (err) {
                     console.error(`[LeagueService] Failed to fetch/save summoner ${entry.puuid}:`, err);
                 }

@@ -47,7 +47,7 @@ export class MatchHistoryService {
             const existingIds = new Set(existingMatches.map(m => m.id));
             
             // Riot's array is strictly chronological (newest to oldest).
-            const missingMatchIds = recentMatchIds.filter(id => !existingIds.has(id));
+            const missingMatchIds = recentMatchIds.filter((id: string) => !existingIds.has(id));
 
             // Throttle to 10 matches per processing batch to prevent Serverless/Riot timeouts
             const matchesToProcess = missingMatchIds.slice(0, 10);
@@ -354,6 +354,7 @@ export class MatchHistoryService {
         const info = mj.info;
         const participants = info.participants;
         const me = participants.find((p: any) => p.puuid === puuid);
+        if (!me) throw new Error(`Participant with puuid ${puuid} not found in match ${mj.metadata.matchId}`);
 
         const timelineJson = mj.timeline;
         const runesData = await this.getRunesData(version);

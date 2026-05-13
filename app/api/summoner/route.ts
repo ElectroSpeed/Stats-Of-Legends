@@ -142,8 +142,11 @@ export async function GET(req: NextRequest) {
       }
     });
 
-  } catch (e) {
+  } catch (e: any) {
     console.error('[summoner] fatal error', e);
+    if (e.message === 'RIOT_API_KEY_INVALID_OR_EXPIRED') {
+        return NextResponse.json({ error: 'API_MAINTENANCE', message: 'La clé API Riot est expirée ou invalide.' }, { status: 503 });
+    }
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 });
   }
 }

@@ -356,7 +356,8 @@ async function processPlayer(entry: any, tier: string, limit: number, onMatchPro
     // Get Matches
     // We always fetch up to MATCHES_PER_PLAYER IDs to ensure we have enough candidates,
     // even if we only need a few. Fetching IDs is cheap.
-    const matchIds = await fetchMatchIds(puuid, CONFIG.ROUTING, 0, CONFIG.MATCHES_PER_PLAYER);
+
+    const matchIds: string[] = await fetchMatchIds(puuid, CONFIG.ROUTING, 0, CONFIG.MATCHES_PER_PLAYER);
 
     // Filter existing matches in DB to avoid re-processing
     const existingMatches = await prisma.match.findMany({

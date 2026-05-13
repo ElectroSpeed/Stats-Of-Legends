@@ -1,7 +1,20 @@
 import React from "react";
 import { CustomButton } from "../global/button/CustomButton";
 
-export const DesktopNav = ({ items, isActive, onNavigate }) => {
+type NavItem = {
+    key: string;
+    href: string;
+    icon: React.ReactNode;
+    label: string;
+};
+
+type DesktopNavProps = {
+    items: NavItem[];
+    isActive: (key: string, href: string) => boolean;
+    onNavigate: (e: React.MouseEvent, key: string) => void;
+};
+
+export const DesktopNav: React.FC<DesktopNavProps> = ({ items, isActive, onNavigate }) => {
     return (
         <div className="flex items-center space-x-2">
             {items.map((item) => (

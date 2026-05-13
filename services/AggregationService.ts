@@ -1,15 +1,55 @@
 import { Participant } from '../types';
 
+interface ChampionAggStat {
+    id: string;
+    name: string;
+    imageUrl: string;
+    matches: number;
+    wins: number;
+    kills: number;
+    deaths: number;
+    assists: number;
+    cs: number;
+    gold: number;
+    damage: number;
+}
+
+interface TeammateAggStat {
+    summonerName: string;
+    tagLine: string;
+    matches: number;
+    wins: number;
+    puuid: string;
+    profileIconId: number;
+}
+
+interface AggregationContext {
+    championsMap: Map<string, ChampionAggStat>;
+    teammatesMap: Map<string, TeammateAggStat>;
+    heatmapData: Record<string, { count: number; wins: number; losses: number }>;
+    performance: { 
+        combat: number; 
+        objectives: number; 
+        vision: number; 
+        farming: number; 
+        survival: number;
+        consistencyBadge?: string;
+    };
+    totalScore: number;
+    scoreCount: number;
+    scores: number[];
+}
+
 export class AggregationService {
     static calculateAggregations(matches: any[], summoner: any, version: string) {
-        const context = {
-            championsMap: new Map<string, any>(),
-            teammatesMap: new Map<string, any>(),
-            heatmapData: {} as Record<string, { count: number; wins: number; losses: number }>,
-            performance: { combat: 0, objectives: 0, vision: 0, farming: 0, survival: 0 } as any,
+        const context: AggregationContext = {
+            championsMap: new Map(),
+            teammatesMap: new Map(),
+            heatmapData: {},
+            performance: { combat: 0, objectives: 0, vision: 0, farming: 0, survival: 0 },
             totalScore: 0,
             scoreCount: 0,
-            scores: [] as number[],
+            scores: [],
         }
 
         matches.forEach(match => this.processMatch(match, matches, context));
@@ -41,7 +81,7 @@ export class AggregationService {
         };
     }
 
-    private static processMatch(match: any, matches: any[], ctx: any) {
+    private static processMatch(match: any, matches: any[], ctx: AggregationContext) {
         const me = match.me;
         if (!me) return;
 
@@ -51,7 +91,7 @@ export class AggregationService {
         this.updatePerformanceStats(me, ctx);
     }
 
-    private static updateChampionStats(me: any, championsMap: Map<string, any>) {
+    private static updateChampionStats(me: any, championsMap: Map<string, ChampionAggStat>) {
         const champName = me.champion.name;
         if (!championsMap.has(champName)) {
             championsMap.set(champName, {
@@ -73,7 +113,7 @@ export class AggregationService {
         champ.damage += me.totalDamageDealtToChampions;
     }
 
-    private static updateTeammatesStats(match: any, matches: any[], teammatesMap: Map<string, any>) {
+    private static updateTeammatesStats(match: any, matches: any[], teammatesMap: Map<string, TeammateAggStat>) {
         // Limit to last 20 matches for performance
         if (matches.indexOf(match) >= 20 || !match.teamMatesSummary || !Array.isArray(match.teamMatesSummary)) return;
 
@@ -92,7 +132,7 @@ export class AggregationService {
         });
     }
 
-    private static updateHeatmapStats(match: any, me: any, heatmapData: any) {
+    private static updateHeatmapStats(match: any, me: any, heatmapData: Record<string, { count: number; wins: number; losses: number }>) {
         const creation = new Date(match.gameCreation);
         if (!Number.isNaN(creation.getTime())) {
             const date = creation.toISOString().split('T')[0];
@@ -103,7 +143,7 @@ export class AggregationService {
         }
     }
 
-    private static updatePerformanceStats(me: any, ctx: any) {
+    private static updatePerformanceStats(me: any, ctx: AggregationContext) {
         if (me.legendScoreBreakdown) {
             ctx.performance.combat += me.legendScoreBreakdown.damage || 0;
             ctx.performance.objectives += me.legendScoreBreakdown.objective || 0;

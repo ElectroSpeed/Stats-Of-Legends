@@ -1,6 +1,6 @@
 import { SeasonInfo, Region } from '../types';
 
-export const CURRENT_PATCH = "15.24.1";
+export const CURRENT_PATCH = "16.10.1";
 
 export const CURRENT_SEASON_INFO: SeasonInfo = (() => {
     const now = new Date();

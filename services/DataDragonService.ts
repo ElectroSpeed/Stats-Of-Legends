@@ -13,7 +13,7 @@ export class DataDragonService {
 
     static async getLatestPatch(): Promise<string> {
         try {
-            const res = await fetch('https://ddragon.leagueoflegends.com/api/versions.json', { next: { revalidate: 3600 } });
+            const res = await fetch('https://ddragon.leagueoflegends.com/api/versions.json', { next: { revalidate: 3600 } } as any);
             const versions = await res.json();
             return versions[0] || CURRENT_PATCH;
         } catch {
@@ -131,7 +131,7 @@ export class DataDragonService {
         }
 
         const cdnUrl = `https://ddragon.leagueoflegends.com/cdn/${patch}/data/${locale}/championFull.json`;
-        const response = await fetch(cdnUrl, { next: { revalidate: 3600 } });
+        const response = await fetch(cdnUrl, { next: { revalidate: 3600 } } as any);
         if (!response.ok) throw new Error('Failed to fetch champions from CDN');
         const json = await response.json();
 

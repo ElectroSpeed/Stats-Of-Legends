@@ -16,8 +16,9 @@ async function streamResponseToText(ai: any, prompt: string, model: string, maxT
       else if (typeof chunk === 'string') collected += chunk;
     }
     return collected;
-  } catch (e) {
-    console.warn('Streaming fallback failed:', e?.message || e);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.warn('Streaming fallback failed:', message);
     return '';
   }
 }
@@ -87,7 +88,17 @@ function extractTextFromResponse(response: any): { text: string; truncated: bool
   return { text: '', truncated };
 }
 
+import { checkRateLimit } from '@/lib/rateLimit';
+
 export async function POST(request: Request) {
+  // Rate Limit Check
+  const ip = request.headers.get('x-forwarded-for') || 'anonymous';
+  const { success } = checkRateLimit(ip, 5, 15 * 60 * 1000); // 5 requests per 15 min
+  
+  if (!success) {
+    return NextResponse.json({ error: "Trop de requêtes. Veuillez patienter 15 minutes." }, { status: 429 });
+  }
+
   const apiKey = getApiKey();
   if (!apiKey) {
     return NextResponse.json({ error: "Clé API manquante. Définissez GEMINI_API_KEY ou GOOGLE_API_KEY." }, { status: 500 });

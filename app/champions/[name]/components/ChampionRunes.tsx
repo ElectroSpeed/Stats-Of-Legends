@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import { getRuneIconUrl } from '@/utils/ddragon';
 
@@ -72,7 +71,7 @@ const getShardIcon = (id: number) => {
 };
 
 interface RuneTreeProps {
-    tree: RuneTreeData;
+    tree?: RuneTreeData;
     page: RunePage;
     isPrimary: boolean;
     getRuneIcon: (id: number) => string;
@@ -164,7 +163,7 @@ const ShardSection = ({ page }: { page: RunePage }) => (
                             const shardIndex = page.perks.length - 3 + rowIdx;
                             active = page.perks[shardIndex] === shardId;
                         } else {
-                            active = page.perks.includes(shardId) || (page.statPerks && Object.values(page.statPerks).includes(shardId));
+                            active = page.perks.includes(shardId) || (page.statPerks ? Object.values(page.statPerks).includes(shardId) : false);
                         }
 
                         const iconUrl = getShardIcon(shardId);

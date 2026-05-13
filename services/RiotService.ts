@@ -82,7 +82,10 @@ export async function fetchRiotAccount(gameName: string, tagLine: string, region
   return RiotGateway.execute(async () => {
     const url = `https://${regionRouting}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
     const res = await fetchWithRetry(url);
-    if (!res.ok) throw new Error(`RIOT_${res.status}`);
+    if (!res.ok) {
+        if (res.status === 401 || res.status === 403) throw new Error('RIOT_API_KEY_INVALID_OR_EXPIRED');
+        throw new Error(`RIOT_${res.status}`);
+    }
     return res.json();
   }, priority);
 }
@@ -91,7 +94,10 @@ export async function fetchSummonerByPuuid(puuid: string, platform: string, prio
   return RiotGateway.execute(async () => {
     const url = `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`;
     const res = await fetchWithRetry(url);
-    if (!res.ok) throw new Error(`RIOT_${res.status}`);
+    if (!res.ok) {
+        if (res.status === 401 || res.status === 403) throw new Error('RIOT_API_KEY_INVALID_OR_EXPIRED');
+        throw new Error(`RIOT_${res.status}`);
+    }
     return res.json();
   }, priority);
 }

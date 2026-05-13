@@ -175,31 +175,26 @@ export class AIAnalysisService {
 }
 
 export async function analyzeBuild(champion: any, items: any[], stats: any): Promise<string> {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.API_KEY || '';
-    if (!apiKey) return "Clé API manquante.";
-
-    const ai = new GoogleGenAI({ apiKey });
-    const prompt = `
-    You are an expert League of Legends coach.
-    Analyze this build for ${champion.name}:
-    Items: ${items.map(i => i.name).join(', ')}
-    Stats: HP ${stats.hp}, AD ${stats.ad}, AP ${stats.ap}, Armor ${stats.armor}, MR ${stats.mr}
-
-    Is this a good build? What are the strengths and weaknesses?
-    Keep it concise (under 100 words).
-    `;
-
     try {
-        const response = await ai.models.generateContent({
-            model: MODEL,
-            contents: prompt,
-            config: { temperature: DEFAULT_TEMPERATURE, maxOutputTokens: 500 }
+        const response = await fetch('/api/analyze/build', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                champion,
+                itemNames: items.map(i => i.name).join(', '),
+                stats
+            })
         });
 
-        const extracted = AIAnalysisService.extractTextFromResponse(response);
-        return extracted.text || "No analysis generated.";
+        if (!response.ok) {
+            const errData = await response.json();
+            return errData.error || "Erreur lors de l'analyse.";
+        }
+
+        const data = await response.json();
+        return data.result || "Aucune analyse générée.";
     } catch (error) {
         console.error("Build Analysis Error:", error);
-        return "Error generating analysis.";
+        return "Impossible de contacter le service d'analyse.";
     }
 }

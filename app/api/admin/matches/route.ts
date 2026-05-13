@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import { RiotService } from '@/services/RiotService';
 import { HTTP_TOO_MANY_REQUESTS, BATCH_SIZE_MATCHES } from '@/constants/api';
 
+import { checkRateLimit } from '@/lib/rateLimit';
+
 export async function GET(request: Request) {
+    const ip = request.headers.get('x-forwarded-for') || 'anonymous';
+    const { success } = checkRateLimit(ip, 20, 1 * 60 * 1000); // 20 per minute is safe
+    if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+
     const { searchParams } = new URL(request.url);
     const summonerId = searchParams.get('summonerId');
     const puuidParam = searchParams.get('puuid');

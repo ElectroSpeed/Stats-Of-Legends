@@ -42,6 +42,14 @@ interface LegendScoreRadarProps {
     averageLabel?: string; // Optional: Label for the average polygon
 }
 
+type RadarDatum = {
+    subject: string;
+    fullMark: number;
+    A: number;
+    B: number;
+    [key: string]: number | string;
+};
+
 export const LegendScoreRadar: React.FC<LegendScoreRadarProps> = ({ playerStats, averageStats, comparisons = [], averageLabel = 'Tier Avg' }) => {
 
     const DEFAULT_SCORE = 50;
@@ -56,7 +64,7 @@ export const LegendScoreRadar: React.FC<LegendScoreRadarProps> = ({ playerStats,
         aggressiveness: DEFAULT_SCORE
     };
 
-    const radarData = [
+    const radarData: RadarDatum[] = [
         { subject: 'Combat', A: playerStats.combat, B: avg.combat, fullMark: 100 },
         { subject: 'Objectives', A: playerStats.objectives, B: avg.objectives, fullMark: 100 },
         { subject: 'Vision', A: playerStats.vision, B: avg.vision, fullMark: 100 },

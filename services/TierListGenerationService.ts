@@ -11,7 +11,27 @@ export class TierListGenerationService {
 
         // Active Patch Logic
         const latestPatch = await DataDragonService.getLatestPatch();
-        const currentPatch = latestPatch.split('.').slice(0, 2).join('.');
+        let currentPatch = latestPatch.split('.').slice(0, 2).join('.');
+
+        // Check if we have enough data for this patch to make a switch
+        const hasDataCount = await prisma.championStat.count({
+            where: { patch: currentPatch }
+        });
+
+        if (hasDataCount < 50) { // Require at least 50 records (approx 5-10 matches) to switch to a new patch
+            // Fallback: Find the latest patch that HAS data in our DB
+            const latestStatInDb = await prisma.championStat.findFirst({
+                orderBy: [
+                    { patch: 'desc' },
+                    { createdAt: 'desc' }
+                ],
+                select: { patch: true }
+            });
+
+            if (latestStatInDb) {
+                currentPatch = latestStatInDb.patch;
+            }
+        }
 
         // Construct Where Clause
         const whereClause: any = {
@@ -20,26 +40,29 @@ export class TierListGenerationService {
         };
 
         if (role && role !== 'ALL') {
-            // If specific role, fetch that role OR 'ALL' (for bans)
             whereClause.OR = [
                 { role: role },
                 { role: 'ALL' }
             ];
         }
-        // If role is ALL or null, we fetch everything (no role filter), which includes 'ALL' role for bans.
 
         // Fetch stats from DB
         const stats = await prisma.championStat.findMany({
             where: whereClause
         });
 
-        // Get Total Matches for this Tier/Patch (Approximation using ScannedMatch)
+        // Get Total Matches for this Tier/Patch
         const totalMatches = await prisma.scannedMatch.count({
             where: { 
                 tier: { in: targetTiers },
-                patch: currentPatch 
+                patch: { startsWith: currentPatch } 
             }
         });
+
+        // Determine dynamic match threshold
+        // If we have very few matches (e.g. < 50), show champions with even 1 match.
+        // Otherwise, require a bit more to avoid noise.
+        const minMatches = totalMatches < 50 ? 1 : (totalMatches < 200 ? 5 : 10);
 
         // Aggregate Data
         const aggregated = new Map<string, {
@@ -104,7 +127,7 @@ export class TierListGenerationService {
 
         // Convert to ChampionTier format
         const data: ChampionTier[] = Array.from(aggregated.values())
-            .filter(s => s.matches >= 10)
+            .filter(s => s.matches >= minMatches)
             .map(s => {
                 const winRate = s.matches > 0 ? (s.wins / s.matches) * 100 : 0;
                 const pickRate = totalMatches > 0 ? (s.matches / totalMatches) * 100 : 0;

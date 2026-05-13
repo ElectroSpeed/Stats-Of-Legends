@@ -4,8 +4,23 @@ import React, { useState } from "react";
 import {Globe, Menu, X} from "lucide-react";
 import { CustomButton } from "../global/button/CustomButton";
 import { Selector } from "../global/button/Selector";
+import type { Language } from "../../types";
 
-export const MobileMenu = ({items, currentLang, setLang, languages}) => {
+type NavItem = {
+    key: string;
+    href: string;
+    icon: React.ReactNode;
+    label: string;
+};
+
+type MobileMenuProps = {
+    items: NavItem[];
+    currentLang: Language;
+    setLang: (lang: Language) => void;
+    languages: Language[];
+};
+
+export const MobileMenu: React.FC<MobileMenuProps> = ({items, currentLang, setLang, languages}) => {
     const [open, setOpen] = useState(false);
 
     return (

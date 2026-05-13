@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import { RiotService } from '@/services/RiotService';
 import { HTTP_TOO_MANY_REQUESTS } from '@/constants/api';
 
+import { checkRateLimit } from '@/lib/rateLimit';
+
 export async function GET(request: Request) {
+    const ip = request.headers.get('x-forwarded-for') || 'anonymous';
+    const { success } = checkRateLimit(ip, 3, 15 * 60 * 1000); 
+    if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+
     const adminKey = request.headers.get('x-admin-key');
     if (adminKey !== process.env.ADMIN_SECRET_KEY) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

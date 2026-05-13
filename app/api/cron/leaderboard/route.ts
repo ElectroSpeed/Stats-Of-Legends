@@ -8,10 +8,10 @@ export async function GET(request: NextRequest) {
     const region = searchParams.get('region') || 'EUW1';
     const key = searchParams.get('key');
 
-    // Security check (optional, but recommended)
-    // if (key !== process.env.CRON_SECRET) {
-    //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    // Security check
+    if (key !== process.env.CRON_SECRET) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     try {
         // Trigger the update asynchronously (fire and forget if needed, but here we wait)

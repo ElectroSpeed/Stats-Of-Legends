@@ -6,7 +6,17 @@ import { HTTP_BAD_GATEWAY } from '@/constants/api';
 const getApiKey = () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.API_KEY || '';
 const ANALYSIS_VERSION = '1.0';
 
+import { checkRateLimit } from '@/lib/rateLimit';
+
 export async function POST(request: Request) {
+  // Rate Limit Check
+  const ip = request.headers.get('x-forwarded-for') || 'anonymous';
+  const { success } = checkRateLimit(ip, 10, 15 * 60 * 1000); 
+  
+  if (!success) {
+    return NextResponse.json({ error: "Trop de requêtes." }, { status: 429 });
+  }
+
   const apiKey = getApiKey();
   if (!apiKey) {
     return NextResponse.json({ error: 'Clé API manquante. Définissez GEMINI_API_KEY ou GOOGLE_API_KEY.' }, { status: 500 });

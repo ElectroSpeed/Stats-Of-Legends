@@ -65,13 +65,18 @@ export class MatchProcessor {
             }
 
             // Mark as Scanned
-            await prisma.scannedMatch.create({
-                data: {
-                    id: matchId,
-                    patch: patch,
-                    tier: tier
-                }
-            });
+            try {
+                await prisma.scannedMatch.create({
+                    data: {
+                        id: matchId,
+                        patch: patch,
+                        tier: tier
+                    }
+                });
+            } catch (e: any) {
+                if (e.code !== 'P2002') throw e;
+                // If P2002, another thread just marked it. That's fine.
+            }
 
             return { status: 'processed', patch };
 
@@ -329,29 +334,21 @@ export class MatchProcessor {
     }
 
     private static async upsertChampionStats(p: any, info: any, context: any, stats: any) {
-         const { role, tier, patch, durationBucket } = context;
-         const { shares, items, runes, spells, skillOrder } = stats;
+        const { role, tier, patch, durationBucket } = context;
+        const { shares, items, runes, spells, skillOrder } = stats;
 
-         const existingStat = await prisma.championStat.findUnique({
-            where: {
-                championId_role_tier_patch_durationBucket: {
-                    championId: p.championName, role, tier, patch, durationBucket
-                }
-            }
-        });
+        const performUpdate = async (existing: any) => {
+            const merge = (target: any, source: any) => {
+                const t = target || {};
+                Object.keys(source).forEach(k => {
+                    if (t[k]) { t[k].wins += source[k].wins; t[k].matches += source[k].matches; }
+                    else { t[k] = source[k]; }
+                });
+                return t;
+            };
 
-        if (existingStat) {
-             const merge = (target: any, source: any) => {
-                 const t = target || {};
-                 Object.keys(source).forEach(k => {
-                     if (t[k]) { t[k].wins += source[k].wins; t[k].matches += source[k].matches; }
-                     else { t[k] = source[k]; }
-                 });
-                 return t;
-             };
-
-             await prisma.championStat.update({
-                where: { id: existingStat.id },
+            await prisma.championStat.update({
+                where: { id: existing.id },
                 data: {
                     matches: { increment: 1 },
                     wins: { increment: p.win ? 1 : 0 },
@@ -368,28 +365,56 @@ export class MatchProcessor {
                     totalVisionScorePerMin: { increment: shares.visionPerMin },
                     totalObjectiveParticipation: { increment: shares.objPart },
                     totalDamageShareSq: { increment: Math.pow(shares.damageShare, 2) },
-                    items: merge(existingStat.items, items),
-                    runes: merge(existingStat.runes, runes),
-                    spells: merge(existingStat.spells, spells),
-                    skillOrder: merge(existingStat.skillOrder, skillOrder)
+                    items: merge(existing.items, items),
+                    runes: merge(existing.runes, runes),
+                    spells: merge(existing.spells, spells),
+                    skillOrder: merge(existing.skillOrder, skillOrder)
                 }
             });
+        };
+
+        const existingStat = await prisma.championStat.findUnique({
+            where: {
+                championId_role_tier_patch_durationBucket: {
+                    championId: p.championName, role, tier, patch, durationBucket
+                }
+            }
+        });
+
+        if (existingStat) {
+            await performUpdate(existingStat);
         } else {
-            await prisma.championStat.create({
-                data: {
-                    championId: p.championName, role, tier, patch, durationBucket,
-                    matches: 1, wins: p.win ? 1 : 0,
-                    totalKills: p.kills, totalDeaths: p.deaths, totalAssists: p.assists,
-                    totalDamage: p.totalDamageDealtToChampions, totalGold: p.goldEarned,
-                    totalCs: (p.totalMinionsKilled || 0) + (p.neutralMinionsKilled || 0),
-                    totalVision: p.visionScore, totalDuration: info.gameDuration,
-                    totalDamageShare: shares.damageShare, totalGoldShare: shares.goldShare,
-                    totalVisionScorePerMin: shares.visionPerMin, totalObjectiveParticipation: shares.objPart,
-                    totalGd15Sq: 0, totalCsd15Sq: 0, totalXpd15Sq: 0,
-                    totalDamageShareSq: Math.pow(shares.damageShare, 2),
-                    items: items, runes: runes, spells: spells, skillOrder: skillOrder
+            try {
+                await prisma.championStat.create({
+                    data: {
+                        championId: p.championName, role, tier, patch, durationBucket,
+                        matches: 1, wins: p.win ? 1 : 0,
+                        totalKills: p.kills, totalDeaths: p.deaths, totalAssists: p.assists,
+                        totalDamage: p.totalDamageDealtToChampions, totalGold: p.goldEarned,
+                        totalCs: (p.totalMinionsKilled || 0) + (p.neutralMinionsKilled || 0),
+                        totalVision: p.visionScore, totalDuration: info.gameDuration,
+                        totalDamageShare: shares.damageShare, totalGoldShare: shares.goldShare,
+                        totalVisionScorePerMin: shares.visionPerMin, totalObjectiveParticipation: shares.objPart,
+                        totalGd15Sq: 0, totalCsd15Sq: 0, totalXpd15Sq: 0,
+                        totalDamageShareSq: Math.pow(shares.damageShare, 2),
+                        items: items, runes: runes, spells: spells, skillOrder: skillOrder
+                    }
+                });
+            } catch (e: any) {
+                if (e.code === 'P2002') {
+                    // Race condition: another thread created it. Update instead.
+                    const reFetched = await prisma.championStat.findUnique({
+                        where: {
+                            championId_role_tier_patch_durationBucket: {
+                                championId: p.championName, role, tier, patch, durationBucket
+                            }
+                        }
+                    });
+                    if (reFetched) await performUpdate(reFetched);
+                } else {
+                    throw e;
                 }
-            });
+            }
         }
     }
 

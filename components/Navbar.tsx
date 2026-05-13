@@ -34,7 +34,7 @@ export const Navbar = ({ currentView, onNavigate }: NavbarProps) => {
     const [livePatch, setLivePatch] = useState(CURRENT_PATCH);
 
     React.useEffect(() => {
-        fetch('https://ddragon.leagueoflegends.com/api/versions.json')
+        fetch(`https://ddragon.leagueoflegends.com/api/versions.json?v=${Date.now()}`)
             .then(res => res.json())
             .then(data => { if (data && data[0]) setLivePatch(data[0]); })
             .catch(() => {});

@@ -106,9 +106,17 @@ const ParticipantRow: React.FC<ParticipantRowProps> = ({ participant: p, maxDama
 
                 {/* Spells & Runes - 2x2 Grid */}
                 <div className="grid grid-cols-2 gap-0.5">
-                    <Image src={spell1Img} width={24} height={24} className="w-6 h-6 rounded border border-white/10" alt="Summoner Spell 1" />
+                    {spell1Img ? (
+                        <Image src={spell1Img} width={24} height={24} className="w-6 h-6 rounded border border-white/10" alt="Summoner Spell 1" />
+                    ) : (
+                        <div className="w-6 h-6 rounded border border-white/10 bg-black/40" />
+                    )}
                     {runePrimary && <Image src={runePrimary} width={24} height={24} className="w-6 h-6 rounded-full bg-black border border-white/10" alt="Primary Rune" />}
-                    <Image src={spell2Img} width={24} height={24} className="w-6 h-6 rounded border border-white/10" alt="Summoner Spell 2" />
+                    {spell2Img ? (
+                        <Image src={spell2Img} width={24} height={24} className="w-6 h-6 rounded border border-white/10" alt="Summoner Spell 2" />
+                    ) : (
+                        <div className="w-6 h-6 rounded border border-white/10 bg-black/40" />
+                    )}
                     {runeSecondary && <Image src={runeSecondary} width={24} height={24} className="w-6 h-6 rounded-full bg-black border border-white/10 p-0.5" alt="Secondary Rune" />}
                 </div>
 

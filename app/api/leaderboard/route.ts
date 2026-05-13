@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LeaderboardService } from "@/services/LeaderboardService";
+import { serializeBigInt } from "@/utils/serialization";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -17,17 +18,7 @@ export async function GET(request: NextRequest) {
       limit,
     );
 
-    // Convert BigInt to string for JSON serialization
-    const serializedPlayers = result.players.map((p) => ({
-      ...p,
-      rankValue: p.rankValue.toString(),
-    }));
-
-    return NextResponse.json({
-      players: serializedPlayers,
-      nextCursor: result.nextCursor ? result.nextCursor.toString() : null,
-      totalPlayers: result.totalPlayers,
-    });
+    return NextResponse.json(serializeBigInt(result));
   } catch (error) {
     console.error("Leaderboard API Error:", error);
     return NextResponse.json(

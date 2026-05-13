@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import { MatchProcessor } from '@/services/MatchProcessor';
 import { HTTP_TOO_MANY_REQUESTS } from '@/constants/api';
 
+import { checkRateLimit } from '@/lib/rateLimit';
+
 export async function POST(request: Request) {
+    const ip = request.headers.get('x-forwarded-for') || 'anonymous';
+    const { success } = checkRateLimit(ip, 10, 1 * 60 * 1000); // 10 per minute is enough for debug
+    if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+
     const adminKey = request.headers.get('x-admin-key');
     if (adminKey !== process.env.ADMIN_SECRET_KEY) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

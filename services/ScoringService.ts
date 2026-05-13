@@ -180,7 +180,7 @@ export class ScoringService {
         }
     }
 
-    private static calculateZScores(stats: any, championStats: any, matchupStats: any, role: string, laneStats?: any) {
+    private static calculateZScores(stats: any, championStats: any, matchupStats: any, role: string, laneStats?: { csd15: number; gd15: number; xpd15: number }) {
         const zScores: Record<string, number> = {};
         
         // Helper: Variance-Based Normalization
